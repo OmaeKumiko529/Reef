@@ -17,7 +17,7 @@ MonoBehaviour:
     displayName: 1001
     mapColor:
       serializedVersion: 2
-      rgba: 4285913313
+      rgba: 4292991092
     cultureId: culture_lutetian
     products:
     - grain
@@ -29,7 +29,7 @@ MonoBehaviour:
     displayName: 1002
     mapColor:
       serializedVersion: 2
-      rgba: 4290831725
+      rgba: 4285392319
     cultureId: culture_lutetian
     products:
     - coal
@@ -41,7 +41,7 @@ MonoBehaviour:
     displayName: 1003
     mapColor:
       serializedVersion: 2
-      rgba: 4284001811
+      rgba: 4279479896
     cultureId: culture_lutetian
     products:
     - grain
@@ -52,7 +52,7 @@ MonoBehaviour:
     displayName: 1004
     mapColor:
       serializedVersion: 2
-      rgba: 4289035074
+      rgba: 4282546854
     cultureId: culture_lutetian
     products:
     - steel
@@ -63,7 +63,7 @@ MonoBehaviour:
     displayName: 1005
     mapColor:
       serializedVersion: 2
-      rgba: 4281752889
+      rgba: 4281949494
     cultureId: culture_lutetian
     products:
     - grain
@@ -75,7 +75,7 @@ MonoBehaviour:
     displayName: 1006
     mapColor:
       serializedVersion: 2
-      rgba: 4291669470
+      rgba: 4292783565
     cultureId: culture_lutetian
     products:
     - coal
@@ -86,7 +86,7 @@ MonoBehaviour:
     displayName: 1007
     mapColor:
       serializedVersion: 2
-      rgba: 4293388171
+      rgba: 4287293159
     cultureId: culture_lutetian
     products:
     - grain
@@ -99,7 +99,7 @@ MonoBehaviour:
     displayName: "\u5E15\u745E\u5179\u7701"
     mapColor:
       serializedVersion: 2
-      rgba: 4280039572
+      rgba: 4287904028
     cultureId: culture_lutetian
     products:
     - steel
@@ -111,7 +111,7 @@ MonoBehaviour:
     displayName: 1009
     mapColor:
       serializedVersion: 2
-      rgba: 4282249194
+      rgba: 4293587005
     cultureId: culture_lutetian
     products:
     - grain
@@ -122,7 +122,7 @@ MonoBehaviour:
     displayName: 1010
     mapColor:
       serializedVersion: 2
-      rgba: 4279658253
+      rgba: 4279002902
     cultureId: culture_lutetian
     products:
     - grain
@@ -134,7 +134,7 @@ MonoBehaviour:
     displayName: 1011
     mapColor:
       serializedVersion: 2
-      rgba: 4292950175
+      rgba: 4291301539
     cultureId: culture_lutetian
     products:
     - coal
@@ -146,7 +146,7 @@ MonoBehaviour:
     displayName: 1012
     mapColor:
       serializedVersion: 2
-      rgba: 4294919493
+      rgba: 4282729983
     cultureId: culture_lutetian
     products:
     - grain
@@ -157,7 +157,7 @@ MonoBehaviour:
     displayName: 1013
     mapColor:
       serializedVersion: 2
-      rgba: 4288811208
+      rgba: 4288624864
     cultureId: culture_lutetian
     products:
     - steel
