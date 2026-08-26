@@ -1,0 +1,166 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d8cd56ef90a8634a9fb249033fa82a6, type: 3}
+  m_Name: ProvinceDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::ProvinceDatabase
+  provinces:
+  - id: 1001
+    displayName: 1001
+    mapColor:
+      serializedVersion: 2
+      rgba: 4285913313
+    cultureId: culture_lutetian
+    products:
+    - grain
+    - coal
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1002
+    displayName: 1002
+    mapColor:
+      serializedVersion: 2
+      rgba: 4290831725
+    cultureId: culture_lutetian
+    products:
+    - coal
+    - steel
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1003
+    displayName: 1003
+    mapColor:
+      serializedVersion: 2
+      rgba: 4284001811
+    cultureId: culture_lutetian
+    products:
+    - grain
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1004
+    displayName: 1004
+    mapColor:
+      serializedVersion: 2
+      rgba: 4289035074
+    cultureId: culture_lutetian
+    products:
+    - steel
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1005
+    displayName: 1005
+    mapColor:
+      serializedVersion: 2
+      rgba: 4281752889
+    cultureId: culture_lutetian
+    products:
+    - grain
+    - steel
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1006
+    displayName: 1006
+    mapColor:
+      serializedVersion: 2
+      rgba: 4291669470
+    cultureId: culture_lutetian
+    products:
+    - coal
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1007
+    displayName: 1007
+    mapColor:
+      serializedVersion: 2
+      rgba: 4293388171
+    cultureId: culture_lutetian
+    products:
+    - grain
+    - coal
+    - steel
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1008
+    displayName: "\u5E15\u745E\u5179\u7701"
+    mapColor:
+      serializedVersion: 2
+      rgba: 4280039572
+    cultureId: culture_lutetian
+    products:
+    - steel
+    - coal
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1009
+    displayName: 1009
+    mapColor:
+      serializedVersion: 2
+      rgba: 4282249194
+    cultureId: culture_lutetian
+    products:
+    - grain
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1010
+    displayName: 1010
+    mapColor:
+      serializedVersion: 2
+      rgba: 4279658253
+    cultureId: culture_lutetian
+    products:
+    - grain
+    - coal
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1011
+    displayName: 1011
+    mapColor:
+      serializedVersion: 2
+      rgba: 4292950175
+    cultureId: culture_lutetian
+    products:
+    - coal
+    - steel
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1012
+    displayName: 1012
+    mapColor:
+      serializedVersion: 2
+      rgba: 4294919493
+    cultureId: culture_lutetian
+    products:
+    - grain
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []
+  - id: 1013
+    displayName: 1013
+    mapColor:
+      serializedVersion: 2
+      rgba: 4288811208
+    cultureId: culture_lutetian
+    products:
+    - steel
+    core: 1
+    initialIGroups: []
+    initialIdeologies: []

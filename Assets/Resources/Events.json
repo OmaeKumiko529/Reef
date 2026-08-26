@@ -1,0 +1,31 @@
+{
+  "events": [
+    {
+      "id": "evt_start",
+      "title": "新黎明",
+      "story": "武装起来，公民们！\n组织起你们的队伍，\n前进，前进！\n只有敌人的不洁之血，\n才能灌溉我们的犁沟！",
+      "description": "第二次世界大战的结束，为整个世界带来新的黎明。然而，冷战的种子已经埋下，卢泰西亚暗流涌动。\n作为新上任的间谍主管，请你带领卢泰西亚人民冲破迷雾，在历史上画出浓墨重彩的一笔。",
+      "trigger": [
+        { "type": "time_point", "year": 1945, "month": 9, "day": 4 }
+      ],
+      "options": [
+        {
+          "text": "卢泰西亚需要变革。",
+          "hint": "这将暂时为卢泰西亚开启倒向社会主义阵营与民主主义阵营的选择。",
+          "effects": [
+            { "type": "add_influence", "blockId": "1008", "value": 20 },
+            { "type": "set_flag", "flag": "revolution", "value": 1 }
+          ]
+        },
+        {
+          "text": "我们不能得罪法西斯！",
+          "hint": "这将暂时为卢泰西亚断绝倒向社会主义阵营与民主主义阵营的选择。",
+          "effects": [
+            { "type": "add_influence", "blockId": "1008", "value": -10 },
+            { "type": "set_flag", "flag": "revolution", "value": 0 }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,134 @@
+{
+  "provinces": [
+    {
+      "id": "1001",
+      "displayName": "1001",
+      "mapColor": "#E1D875",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["grain", "coal"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1002",
+      "displayName": "1002",
+      "mapColor": "#6DE5C0",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["coal", "steel"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1003",
+      "displayName": "1003",
+      "mapColor": "#13AE58",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["grain"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1004",
+      "displayName": "1004",
+      "mapColor": "#427BA5",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["steel"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1005",
+      "displayName": "1005",
+      "mapColor": "#395D36",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["grain", "steel"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1006",
+      "displayName": "1006",
+      "mapColor": "#DEADCD",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["coal"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1007",
+      "displayName": "1007",
+      "mapColor": "#8BE7E7",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["grain", "coal", "steel"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1008",
+      "displayName": "帕瑞兹省",
+      "mapColor": "#94381C",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["steel", "coal"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1009",
+      "displayName": "1009",
+      "mapColor": "#EAEF3D",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["grain"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1010",
+      "displayName": "1010",
+      "mapColor": "#0D6716",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["grain", "coal"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1011",
+      "displayName": "1011",
+      "mapColor": "#9F38E1",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["coal", "steel"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1012",
+      "displayName": "1012",
+      "mapColor": "#4545FF",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["grain"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    },
+    {
+      "id": "1013",
+      "displayName": "1013",
+      "mapColor": "#C810A2",
+      "cultureId": "culture_lutetian",
+      "core": true,
+      "products": ["steel"],
+      "initialIGroups": [],
+      "initialIdeologies": []
+    }
+  ]
+}

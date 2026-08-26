@@ -1,0 +1,43 @@
+[System.Serializable]
+public class ConditionData
+{
+    public string type;             // time_point / flag_compare
+    public int year, month, day;    // time_point
+    public string flag;             // flag_compare
+    public string op;               // eq / ne / gt / ge / lt / le
+    public float value;             // flag_compare
+}
+
+[System.Serializable]
+public class EffectData
+{
+    public string type;             // add_influence / set_flag
+    public string blockId;          // add_influence
+    public string flag;             // set_flag
+    public float value;             // add_influence / set_flag
+}
+
+[System.Serializable]
+public class EventOptionData
+{
+    public string text;
+    public string hint;
+    public EffectData[] effects;
+}
+
+[System.Serializable]
+public class EventData
+{
+    public string id;
+    public string title;
+    public string story;
+    public string description;
+    public ConditionData[] trigger;
+    public EventOptionData[] options;
+}
+
+[System.Serializable]
+public class EventRoot
+{
+    public EventData[] events;
+}
