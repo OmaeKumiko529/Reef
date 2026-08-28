@@ -33,8 +33,11 @@ public class ProvincePicker : MonoBehaviour
 
         BlockManager.Instance.Setup(database, labelFont);
         AgencyNavUI.Instance.Setup(labelFont, clickHandler != null ? clickHandler.uiClickClip : null);
+        AgencyPanelUI.Instance.Setup(labelFont);
         GameClock.Instance.Setup(labelFont);
         EventManager.Instance.Setup(labelFont, clickHandler != null ? clickHandler.uiClickClip : null, clickHandler != null ? clickHandler.eventClip : null);
+        CausalChainManager.Instance.Setup(labelFont);
+        TopBarUI.Instance.Setup(labelFont);
     }
 
     void Update()

@@ -52,6 +52,11 @@ public class EventManager : MonoBehaviour
     Coroutine hoverRoutine;
     public float hoverDelay = 0.5f;
 
+    CanvasGroup maskGroup;
+    RectTransform panelRect;
+    Coroutine eventRoutine;
+    readonly List<CanvasGroup> optionGroups = new List<CanvasGroup>();
+
     void Awake()
     {
         if (_instance != null && _instance != this)
@@ -194,11 +199,36 @@ public class EventManager : MonoBehaviour
         switch (fx.type)
         {
             case "add_influence":
+            {
                 var st = BlockManager.Instance.GetState(fx.blockId);
                 if (st != null) st.eventInfluence += fx.value;
                 break;
+            }
             case "set_flag":
                 flags[fx.flag] = fx.value;
+                break;
+            case "reveal_causal_chain":
+                CausalChainManager.Instance.Reveal(fx.chainId);
+                break;
+            case "add_ideology":
+            {
+                var st = BlockManager.Instance.GetState(fx.blockId);
+                if (st != null && st.ideologies != null && st.ideologies.ContainsKey(fx.flag))
+                    st.ideologies[fx.flag] += fx.value;
+                break;
+            }
+            case "add_interest_group":
+            {
+                var st = BlockManager.Instance.GetState(fx.blockId);
+                if (st != null && st.interestGroups != null && st.interestGroups.ContainsKey(fx.flag))
+                    st.interestGroups[fx.flag] += fx.value;
+                break;
+            }
+            case "set_chain_summary":
+                CausalChainManager.Instance.SetSummary(fx.chainId, fx.summary);
+                break;
+            case "penetrate_block":
+                PenetrationManager.Instance.ForcePenetrate(fx.blockId);
                 break;
         }
     }
@@ -217,10 +247,11 @@ public class EventManager : MonoBehaviour
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920f, 1080f);
 
-        var maskGo = new GameObject("Mask", typeof(RectTransform), typeof(Image));
+        var maskGo = new GameObject("Mask", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
         maskGo.transform.SetParent(canvasGo.transform, false);
         var maskImg = maskGo.GetComponent<Image>();
-        maskImg.color = new Color(0f, 0f, 0f, 0.55f);
+        maskImg.color = UITheme.Scrim;
+        maskGroup = maskGo.GetComponent<CanvasGroup>();
         var mrt = maskGo.GetComponent<RectTransform>();
         mrt.anchorMin = Vector2.zero;
         mrt.anchorMax = Vector2.one;
@@ -231,13 +262,14 @@ public class EventManager : MonoBehaviour
         var panelGo = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
         panelGo.transform.SetParent(maskGo.transform, false);
         var pimg = panelGo.GetComponent<Image>();
-        pimg.color = new Color(0.08f, 0.1f, 0.14f, 1f);
+        pimg.color = UITheme.PaperBg;
         var prt = panelGo.GetComponent<RectTransform>();
         prt.anchorMin = new Vector2(0.5f, 0.5f);
         prt.anchorMax = new Vector2(0.5f, 0.5f);
         prt.pivot = new Vector2(0.5f, 0.5f);
         prt.sizeDelta = new Vector2(700f, 100f);
         prt.anchoredPosition = Vector2.zero;
+        panelRect = prt;
 
         var playout = panelGo.GetComponent<VerticalLayoutGroup>();
         playout.padding = new RectOffset(30, 30, 24, 24);
@@ -256,7 +288,7 @@ public class EventManager : MonoBehaviour
         MakeAutoHeight(titleText, 44f);
 
         storyText = CreateText("Story", panelGo.transform, 20, FontStyle.Italic, TextAnchor.UpperLeft);
-        storyText.color = new Color(0.72f, 0.74f, 0.78f, 1f);
+        storyText.color = UITheme.InkSecondary;
         MakeAutoHeight(storyText, 20f);
 
         descText = CreateText("Desc", panelGo.transform, 24, FontStyle.Normal, TextAnchor.UpperLeft);
@@ -280,7 +312,7 @@ public class EventManager : MonoBehaviour
         tooltipRoot = new GameObject("Tooltip", typeof(RectTransform), typeof(Image));
         tooltipRoot.transform.SetParent(canvasGo.transform, false);
         var ttipImg = tooltipRoot.GetComponent<Image>();
-        ttipImg.color = new Color(0.05f, 0.06f, 0.08f, 0.95f);
+        ttipImg.color = UITheme.PaperTop;
         tooltipRect = tooltipRoot.GetComponent<RectTransform>();
         tooltipRect.pivot = new Vector2(0f, 1f);
         tooltipRect.sizeDelta = new Vector2(360f, 120f);
@@ -291,7 +323,7 @@ public class EventManager : MonoBehaviour
         if (font != null) tooltipText.font = font;
         tooltipText.fontSize = 20;
         tooltipText.alignment = TextAnchor.UpperLeft;
-        tooltipText.color = Color.white;
+        tooltipText.color = UITheme.InkPrimary;
         tooltipText.horizontalOverflow = HorizontalWrapMode.Wrap;
         tooltipText.verticalOverflow = VerticalWrapMode.Overflow;
         var t4 = tooltipText.rectTransform;
@@ -314,7 +346,7 @@ public class EventManager : MonoBehaviour
         t.fontSize = size;
         t.fontStyle = style;
         t.alignment = align;
-        t.color = Color.white;
+        t.color = UITheme.InkPrimary;
         t.horizontalOverflow = HorizontalWrapMode.Wrap;
         t.verticalOverflow = VerticalWrapMode.Overflow;
         return t;
@@ -331,15 +363,19 @@ public class EventManager : MonoBehaviour
 
     GameObject CreateOptionButton(EventOptionData opt, System.Action onClick)
     {
-        var go = new GameObject("OptionBtn", typeof(RectTransform), typeof(Image), typeof(Button));
+        var go = new GameObject("OptionBtn", typeof(RectTransform), typeof(Image), typeof(Button), typeof(CanvasGroup));
         go.transform.SetParent(optionsContainer, false);
         var le = go.AddComponent<LayoutElement>();
         le.minHeight = 44f;
         le.preferredHeight = 44f;
+        var group = go.GetComponent<CanvasGroup>();
+        group.alpha = 0f;
+        group.blocksRaycasts = false;
+        optionGroups.Add(group);
         var btn = go.GetComponent<Button>();
         btn.transition = Selectable.Transition.None;
         var img = go.GetComponent<Image>();
-        img.color = new Color(0.16f, 0.19f, 0.24f, 1f);
+        img.color = UITheme.PaperTop;
 
         var labelGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
         labelGo.transform.SetParent(go.transform, false);
@@ -348,7 +384,7 @@ public class EventManager : MonoBehaviour
         t.text = opt.text;
         t.fontSize = 24;
         t.alignment = TextAnchor.MiddleCenter;
-        t.color = Color.white;
+        t.color = UITheme.InkPrimary;
 
         var lrt = labelGo.GetComponent<RectTransform>();
         lrt.anchorMin = Vector2.zero;
@@ -371,12 +407,15 @@ public class EventManager : MonoBehaviour
 
     void ShowEvent(EventData e)
     {
+        if (eventRoutine != null) StopCoroutine(eventRoutine);
+
         titleText.text = e.title;
-        storyText.text = e.story;
         descText.text = e.description;
+        storyText.text = "";
 
         foreach (var b in optionButtons) Destroy(b);
         optionButtons.Clear();
+        optionGroups.Clear();
 
         if (e.options != null)
         {
@@ -388,11 +427,40 @@ public class EventManager : MonoBehaviour
         }
 
         eventRoot.SetActive(true);
+        if (maskGroup != null) maskGroup.alpha = 0f;
+        eventRoutine = StartCoroutine(PlayEventIntro(e.story));
+    }
+
+    System.Collections.IEnumerator PlayEventIntro(string story)
+    {
+        yield return UIAnim.Fade(maskGroup, 1f, UITheme.FadeNormal);
+        yield return UIAnim.Stamp(panelRect, UITheme.StampNormal);
+        if (storyText != null)
+            yield return UIAnim.Typewriter(storyText, story, UITheme.TypeCharDelay);
+        foreach (var g in optionGroups)
+        {
+            g.blocksRaycasts = true;
+            yield return UIAnim.Fade(g, 1f, UITheme.FadeFast);
+        }
+        eventRoutine = null;
     }
 
     void HideEvent()
     {
-        if (eventRoot != null) eventRoot.SetActive(false);
+        if (eventRoot == null) return;
+        if (eventRoutine != null)
+        {
+            StopCoroutine(eventRoutine);
+            eventRoutine = null;
+        }
+        eventRoutine = StartCoroutine(HideEventRoutine());
+    }
+
+    System.Collections.IEnumerator HideEventRoutine()
+    {
+        yield return UIAnim.Fade(maskGroup, 0f, UITheme.FadeFast);
+        eventRoot.SetActive(false);
+        eventRoutine = null;
     }
 
     void OnOptionEnter(EventOptionData opt)
@@ -463,6 +531,16 @@ public class EventManager : MonoBehaviour
                 return "影响力 " + sign + fx.value.ToString("0.##") + "（" + name + "）";
             case "set_flag":
                 return "设置标记 " + fx.flag + " = " + fx.value.ToString("0.##");
+            case "reveal_causal_chain":
+                return "揭示因果链「" + CausalChainManager.Instance.GetTitle(fx.chainId) + "」";
+            case "add_ideology":
+                return "政治思潮 " + fx.flag + " " + (fx.value >= 0f ? "+" : "") + (fx.value * 100f).ToString("0.##") + "%";
+            case "add_interest_group":
+                return "利益集团 " + fx.flag + " " + (fx.value >= 0f ? "+" : "") + (fx.value * 100f).ToString("0.##") + "%";
+            case "set_chain_summary":
+                return "更新因果链「" + CausalChainManager.Instance.GetTitle(fx.chainId) + "」的描述";
+            case "penetrate_block":
+                return "将 " + GetBlockName(fx.blockId) + " 加入渗透列表";
             default:
                 return fx.type;
         }

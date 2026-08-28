@@ -141,7 +141,7 @@ public class GameClock : MonoBehaviour
         var panelGo = new GameObject("ClockPanel", typeof(RectTransform), typeof(Image));
         panelGo.transform.SetParent(canvasGo.transform, false);
         var panelImg = panelGo.GetComponent<Image>();
-        panelImg.color = new Color(0.06f, 0.08f, 0.12f, 0.95f);
+        panelImg.color = UITheme.PaperBg;
 
         var rt = panelGo.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(1f, 1f);
@@ -157,7 +157,7 @@ public class GameClock : MonoBehaviour
         dateText.fontSize = 30;
         dateText.fontStyle = FontStyle.Bold;
         dateText.alignment = TextAnchor.MiddleCenter;
-        dateText.color = Color.white;
+        dateText.color = UITheme.InkPrimary;
 
         var drt = dateGo.GetComponent<RectTransform>();
         drt.anchorMin = new Vector2(0f, 0f);
@@ -171,7 +171,7 @@ public class GameClock : MonoBehaviour
         var btn = btnGo.GetComponent<Button>();
         btn.transition = Selectable.Transition.None;
         var btnImg = btnGo.GetComponent<Image>();
-        btnImg.color = new Color(0.16f, 0.19f, 0.24f, 1f);
+        btnImg.color = UITheme.PaperTop;
 
         var brt = btnGo.GetComponent<RectTransform>();
         brt.anchorMin = new Vector2(0f, 0f);
@@ -186,7 +186,7 @@ public class GameClock : MonoBehaviour
         if (font != null) pauseLabel.font = font;
         pauseLabel.fontSize = 22;
         pauseLabel.alignment = TextAnchor.MiddleCenter;
-        pauseLabel.color = Color.white;
+        pauseLabel.color = UITheme.InkPrimary;
 
         var lrt = labelGo.GetComponent<RectTransform>();
         lrt.anchorMin = Vector2.zero;

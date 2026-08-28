@@ -32,6 +32,7 @@ public class PenetrationManager : MonoBehaviour
 
     readonly HashSet<string> penetrating = new HashSet<string>();
     readonly HashSet<string> decaying = new HashSet<string>();
+    readonly HashSet<string> forced = new HashSet<string>();
     readonly Dictionary<Color32, string> colorToId = new Dictionary<Color32, string>();
     Texture2D penMap;
     bool colorCacheBuilt;
@@ -41,9 +42,18 @@ public class PenetrationManager : MonoBehaviour
     public float DailyBonus => infiltrationLevel * 0.2f;
     public float MaxBonus => infiltrationLevel * 10f;
 
+    public const int MaxLevel = 5;
+
+    public void SetLevel(int level)
+    {
+        infiltrationLevel = Mathf.Clamp(level, 1, MaxLevel);
+    }
+
     public bool IsActive { get; private set; }
 
     GameObject hintRoot;
+    CanvasGroup hintGroup;
+    Coroutine hintRoutine;
 
     void Awake()
     {
@@ -100,18 +110,30 @@ public class PenetrationManager : MonoBehaviour
         if (penetrating.Contains(id))
         {
             penetrating.Remove(id);
+            forced.Remove(id);
             var st = BlockManager.Instance.GetState(id);
             if (st != null && st.penetrationBonus > 0f)
                 decaying.Add(id);
         }
         else
         {
-            if (penetrating.Count >= MaxBlocks) return;
+            if (penetrating.Count - forced.Count >= MaxBlocks) return;
             penetrating.Add(id);
             decaying.Remove(id);
         }
 
         ApplyPenMap();
+    }
+
+    public void ForcePenetrate(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return;
+        if (penetrating.Contains(id)) return;
+
+        penetrating.Add(id);
+        forced.Add(id);
+        decaying.Remove(id);
+        if (colorCacheBuilt) ApplyPenMap();
     }
 
     void OnDayPassed()
@@ -200,10 +222,11 @@ public class PenetrationManager : MonoBehaviour
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920f, 1080f);
 
-        hintRoot = new GameObject("Hint", typeof(RectTransform), typeof(Image));
+        hintRoot = new GameObject("Hint", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
         hintRoot.transform.SetParent(canvasGo.transform, false);
         var img = hintRoot.GetComponent<Image>();
-        img.color = new Color(0f, 0f, 0f, 0.6f);
+        img.color = UITheme.PaperBg;
+        hintGroup = hintRoot.GetComponent<CanvasGroup>();
 
         var rt = hintRoot.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(1f, 0f);
@@ -219,7 +242,7 @@ public class PenetrationManager : MonoBehaviour
         t.text = "点击区块以加入/退出需要渗透的区块";
         t.fontSize = 24;
         t.alignment = TextAnchor.MiddleCenter;
-        t.color = Color.white;
+        t.color = UITheme.InkPrimary;
 
         var trt = textGo.GetComponent<RectTransform>();
         trt.anchorMin = Vector2.zero;
@@ -230,6 +253,25 @@ public class PenetrationManager : MonoBehaviour
         hintRoot.SetActive(false);
     }
 
-    void ShowHint() { if (hintRoot != null) hintRoot.SetActive(true); }
-    void HideHint() { if (hintRoot != null) hintRoot.SetActive(false); }
+    void ShowHint()
+    {
+        if (hintRoot == null) return;
+        if (hintRoutine != null) StopCoroutine(hintRoutine);
+        hintRoot.SetActive(true);
+        hintRoutine = StartCoroutine(UIAnim.Fade(hintGroup, 1f, UITheme.FadeFast));
+    }
+
+    void HideHint()
+    {
+        if (hintRoot == null) return;
+        if (hintRoutine != null) StopCoroutine(hintRoutine);
+        hintRoutine = StartCoroutine(HideHintRoutine());
+    }
+
+    System.Collections.IEnumerator HideHintRoutine()
+    {
+        yield return UIAnim.Fade(hintGroup, 0f, UITheme.FadeFast);
+        hintRoot.SetActive(false);
+        hintRoutine = null;
+    }
 }

@@ -24,13 +24,14 @@ public class AgencyNavUI : MonoBehaviour
         }
     }
 
-    static readonly string[] DeptNames = { "渗透", "科技", "内务", "情报" };
+    static readonly string[] DeptNames = { "渗透", "科技", "内务", "情报", "机构" };
     static readonly string[] DeptDescriptions =
     {
         "渗透处：执行渗透行动，提高对非核心区块的渗透力。",
         "科技处：负责科技研发，影响我方与敌方的破译难度。",
         "内务处：督察政府，提高行政效率。",
-        "情报处：处理情报并汇总报告，产出情报点。"
+        "情报处：处理情报并汇总报告，产出情报点。",
+        "机构：查看各部门投入等级。"
     };
 
     public Font font;
@@ -38,9 +39,10 @@ public class AgencyNavUI : MonoBehaviour
 
     AudioSource audioSource;
     Canvas canvas;
-    GameObject[] panels = new GameObject[4];
-    CanvasGroup[] panelGroups = new CanvasGroup[4];
-    Image[] buttonBgs = new Image[4];
+    GameObject[] panels = new GameObject[5];
+    CanvasGroup[] panelGroups = new CanvasGroup[5];
+    Image[] buttonBgs = new Image[5];
+    Text[] buttonLabels = new Text[5];
     Coroutine animRoutine;
     int currentIndex = -1;
 
@@ -98,7 +100,7 @@ public class AgencyNavUI : MonoBehaviour
         barRt.anchoredPosition = Vector2.zero;
 
         var barImg = barGo.GetComponent<Image>();
-        barImg.color = new Color(0.06f, 0.08f, 0.12f, 0.95f);
+        barImg.color = UITheme.PaperBg;
 
         var layout = barGo.AddComponent<HorizontalLayoutGroup>();
         layout.childAlignment = TextAnchor.MiddleCenter;
@@ -116,7 +118,7 @@ public class AgencyNavUI : MonoBehaviour
             var btn = btnGo.GetComponent<Button>();
             btn.transition = Selectable.Transition.None;
             var bg = btnGo.GetComponent<Image>();
-            bg.color = new Color(0.16f, 0.19f, 0.24f, 1f);
+            bg.color = UITheme.PaperTop;
             buttonBgs[i] = bg;
 
             var textGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
@@ -126,7 +128,8 @@ public class AgencyNavUI : MonoBehaviour
             t.text = DeptNames[i];
             t.fontSize = 26;
             t.alignment = TextAnchor.MiddleCenter;
-            t.color = Color.white;
+            t.color = UITheme.InkPrimary;
+            buttonLabels[i] = t;
 
             var trt = textGo.GetComponent<RectTransform>();
             trt.anchorMin = Vector2.zero;
@@ -135,6 +138,7 @@ public class AgencyNavUI : MonoBehaviour
             trt.offsetMax = Vector2.zero;
 
             btn.onClick.AddListener(() => OnButtonClicked(idx));
+            AddPressScale(btnGo);
         }
     }
 
@@ -154,7 +158,7 @@ public class AgencyNavUI : MonoBehaviour
             rt.anchoredPosition = new Vector2(-40f, 40f);
 
             var img = panelGo.GetComponent<Image>();
-            img.color = new Color(0.07f, 0.09f, 0.13f, 0.97f);
+            img.color = UITheme.PaperBg;
 
             var titleGo = new GameObject("Title", typeof(RectTransform), typeof(Text));
             titleGo.transform.SetParent(panelGo.transform, false);
@@ -164,7 +168,7 @@ public class AgencyNavUI : MonoBehaviour
             title.fontSize = 34;
             title.fontStyle = FontStyle.Bold;
             title.alignment = TextAnchor.MiddleLeft;
-            title.color = Color.white;
+            title.color = UITheme.InkPrimary;
 
             var trt = titleGo.GetComponent<RectTransform>();
             trt.anchorMin = new Vector2(0f, 1f);
@@ -180,7 +184,7 @@ public class AgencyNavUI : MonoBehaviour
             desc.text = DeptDescriptions[i];
             desc.fontSize = 24;
             desc.alignment = TextAnchor.UpperLeft;
-            desc.color = new Color(0.9f, 0.92f, 0.95f, 1f);
+            desc.color = UITheme.InkSecondary;
             desc.horizontalOverflow = HorizontalWrapMode.Wrap;
             desc.verticalOverflow = VerticalWrapMode.Overflow;
 
@@ -223,13 +227,25 @@ public class AgencyNavUI : MonoBehaviour
     void UpdateButtons()
     {
         bool penActive = PenetrationManager.Instance.IsActive;
+        bool agencyOpen = AgencyPanelUI.Instance.IsOpen;
         for (int i = 0; i < DeptNames.Length; i++)
         {
-            bool on = (i == 0) ? penActive : (i == currentIndex);
-            buttonBgs[i].color = on
-                ? new Color(0.95f, 0.75f, 0.3f, 1f)
-                : new Color(0.16f, 0.19f, 0.24f, 1f);
+            bool on = (i == 0) ? penActive : (i == 4) ? agencyOpen : (i == currentIndex);
+            buttonBgs[i].color = on ? UITheme.SealRed : UITheme.PaperTop;
+            buttonLabels[i].color = on ? Color.white : UITheme.InkPrimary;
         }
+    }
+
+    void AddPressScale(GameObject go)
+    {
+        var trigger = go.GetComponent<EventTrigger>();
+        if (trigger == null) trigger = go.AddComponent<EventTrigger>();
+        var down = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+        down.callback.AddListener(_ => go.transform.localScale = Vector3.one * 0.96f);
+        var up = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
+        up.callback.AddListener(_ => go.transform.localScale = Vector3.one);
+        trigger.triggers.Add(down);
+        trigger.triggers.Add(up);
     }
 
     void OnButtonClicked(int index)
@@ -239,6 +255,7 @@ public class AgencyNavUI : MonoBehaviour
 
         if (index == 0)
         {
+            AgencyPanelUI.Instance.SetOpen(false);
             PenetrationManager.Instance.ToggleActive();
             if (PenetrationManager.Instance.IsActive)
                 CloseAllPanelsImmediate();
@@ -246,6 +263,16 @@ public class AgencyNavUI : MonoBehaviour
             return;
         }
 
+        if (index == 4)
+        {
+            PenetrationManager.Instance.SetActive(false);
+            CloseAllPanelsImmediate();
+            AgencyPanelUI.Instance.Toggle();
+            UpdateButtons();
+            return;
+        }
+
+        AgencyPanelUI.Instance.SetOpen(false);
         PenetrationManager.Instance.SetActive(false);
         ShowPanel(index);
     }
@@ -282,65 +309,41 @@ public class AgencyNavUI : MonoBehaviour
 
     System.Collections.IEnumerator OpenRoutine(int index)
     {
-        panels[index].SetActive(true);
-        panelGroups[index].alpha = 0f;
-
-        float t = 0f;
-        while (t < fadeDuration)
-        {
-            t += Time.deltaTime;
-            panelGroups[index].alpha = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / fadeDuration));
-            yield return null;
-        }
-
-        panelGroups[index].alpha = 1f;
+        yield return OpenAnim(index);
         animRoutine = null;
     }
 
     System.Collections.IEnumerator CloseRoutine(int index)
     {
-        panels[index].SetActive(true);
-        panelGroups[index].alpha = 1f;
-
-        float t = 0f;
-        while (t < fadeDuration)
-        {
-            t += Time.deltaTime;
-            panelGroups[index].alpha = Mathf.SmoothStep(1f, 0f, Mathf.Clamp01(t / fadeDuration));
-            yield return null;
-        }
-
-        panelGroups[index].alpha = 0f;
+        yield return UIAnim.Fade(panelGroups[index], 0f, fadeDuration);
         panels[index].SetActive(false);
         animRoutine = null;
     }
 
     System.Collections.IEnumerator SwitchRoutine(int oldIndex, int newIndex)
     {
-        panels[oldIndex].SetActive(true);
-        panelGroups[oldIndex].alpha = 1f;
+        yield return UIAnim.Fade(panelGroups[oldIndex], 0f, fadeDuration);
+        panels[oldIndex].SetActive(false);
+        yield return OpenAnim(newIndex);
+        animRoutine = null;
+    }
+
+    System.Collections.IEnumerator OpenAnim(int index)
+    {
+        panels[index].SetActive(true);
+        panelGroups[index].alpha = 0f;
+        panels[index].transform.localScale = Vector3.one * 0.95f;
 
         float t = 0f;
         while (t < fadeDuration)
         {
             t += Time.deltaTime;
-            panelGroups[oldIndex].alpha = Mathf.SmoothStep(1f, 0f, Mathf.Clamp01(t / fadeDuration));
+            float k = UITheme.EaseOutCubic(t / fadeDuration);
+            panelGroups[index].alpha = Mathf.Lerp(0f, 1f, k);
+            panels[index].transform.localScale = Vector3.one * Mathf.Lerp(0.95f, 1f, k);
             yield return null;
         }
-        panelGroups[oldIndex].alpha = 0f;
-        panels[oldIndex].SetActive(false);
-
-        panels[newIndex].SetActive(true);
-        panelGroups[newIndex].alpha = 0f;
-
-        t = 0f;
-        while (t < fadeDuration)
-        {
-            t += Time.deltaTime;
-            panelGroups[newIndex].alpha = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / fadeDuration));
-            yield return null;
-        }
-        panelGroups[newIndex].alpha = 1f;
-        animRoutine = null;
+        panelGroups[index].alpha = 1f;
+        panels[index].transform.localScale = Vector3.one;
     }
 }

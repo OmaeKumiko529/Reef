@@ -11,10 +11,12 @@ public class ConditionData
 [System.Serializable]
 public class EffectData
 {
-    public string type;             // add_influence / set_flag
-    public string blockId;          // add_influence
-    public string flag;             // set_flag
-    public float value;             // add_influence / set_flag
+    public string type;             // add_influence / set_flag / reveal_causal_chain / add_ideology / add_interest_group / set_chain_summary / penetrate_block
+    public string blockId;          // add_influence / add_ideology / add_interest_group / penetrate_block
+    public string flag;             // set_flag / add_ideology / add_interest_group
+    public string chainId;          // reveal_causal_chain / set_chain_summary
+    public string summary;          // set_chain_summary
+    public float value;             // add_influence / set_flag / add_ideology / add_interest_group
 }
 
 [System.Serializable]

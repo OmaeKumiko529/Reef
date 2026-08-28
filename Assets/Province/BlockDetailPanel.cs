@@ -38,7 +38,7 @@ public class BlockDetailPanel : MonoBehaviour
         panelRoot = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
         panelRoot.transform.SetParent(canvasGo.transform, false);
         var bg = panelRoot.GetComponent<Image>();
-        bg.color = new Color(0.07f, 0.09f, 0.13f, 0.96f);
+        bg.color = UITheme.PaperBg;
         group = panelRoot.GetComponent<CanvasGroup>();
 
         panelRect = panelRoot.GetComponent<RectTransform>();
@@ -78,7 +78,7 @@ public class BlockDetailPanel : MonoBehaviour
         t.fontSize = size;
         t.fontStyle = style;
         t.alignment = align;
-        t.color = Color.white;
+        t.color = UITheme.InkPrimary;
         t.horizontalOverflow = HorizontalWrapMode.Wrap;
         t.verticalOverflow = VerticalWrapMode.Overflow;
         return t;
@@ -162,7 +162,7 @@ public class BlockDetailPanel : MonoBehaviour
         while (t < slideDuration)
         {
             t += Time.deltaTime;
-            float e = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / slideDuration));
+            float e = UITheme.EaseOutCubic(t / slideDuration);
             group.alpha = e;
             panelRect.anchoredPosition = new Vector2(panelRect.sizeDelta.x * (1f - e), y);
             yield return null;
@@ -181,7 +181,7 @@ public class BlockDetailPanel : MonoBehaviour
         while (t < slideDuration)
         {
             t += Time.deltaTime;
-            float e = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / slideDuration));
+            float e = UITheme.EaseOutCubic(t / slideDuration);
             group.alpha = 1f - e;
             panelRect.anchoredPosition = new Vector2(w * e, y);
             yield return null;
@@ -199,7 +199,7 @@ public class BlockDetailPanel : MonoBehaviour
         while (t < fadeDuration)
         {
             t += Time.deltaTime;
-            float e = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / fadeDuration));
+            float e = UITheme.EaseOutCubic(t / fadeDuration);
             float a = 1f - e;
             titleGroup.alpha = a;
             contentGroup.alpha = a;
@@ -213,7 +213,7 @@ public class BlockDetailPanel : MonoBehaviour
         while (t < fadeDuration)
         {
             t += Time.deltaTime;
-            float e = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / fadeDuration));
+            float e = UITheme.EaseOutCubic(t / fadeDuration);
             titleGroup.alpha = e;
             contentGroup.alpha = e;
             yield return null;
