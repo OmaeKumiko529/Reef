@@ -1,6 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 public class CausalChainManager : MonoBehaviour
@@ -24,23 +25,21 @@ public class CausalChainManager : MonoBehaviour
         }
     }
 
-    const string BackgroundStage = "background";
+    const string MistText = "因果迷雾";
 
     public Font font;
 
     readonly Dictionary<string, CausalChainData> chains = new Dictionary<string, CausalChainData>();
-    readonly Dictionary<string, HashSet<string>> unlocked = new Dictionary<string, HashSet<string>>();
-    readonly Dictionary<string, string> summaryOverride = new Dictionary<string, string>();
-    string activeChainId;
+    readonly List<string> journalOrder = new List<string>();
+    readonly Dictionary<string, string> bodyOverride = new Dictionary<string, string>();
 
     Canvas canvas;
     GameObject panelRoot;
     RectTransform panelRect;
     CanvasGroup group;
-    Text titleText;
-    Text contentText;
+    RectTransform listRoot;
+    readonly List<GameObject> entryCards = new List<GameObject>();
     Coroutine animRoutine;
-    string currentSummary = "";
 
     void Awake()
     {
@@ -69,15 +68,9 @@ public class CausalChainManager : MonoBehaviour
         {
             if (c == null || string.IsNullOrEmpty(c.id)) continue;
             chains[c.id] = c;
-
-            var set = new HashSet<string>();
-            if (c.segments != null)
-                foreach (var s in c.segments)
-                    if (s != null && !s.locked) set.Add(s.stage);
-            unlocked[c.id] = set;
         }
 
-        Debug.Log("加载因果链 " + chains.Count + " 条");
+        Debug.Log("加载情报日志 " + chains.Count + " 条");
     }
 
     public void Setup(Font font)
@@ -93,51 +86,56 @@ public class CausalChainManager : MonoBehaviour
 
     public void Reveal(string chainId)
     {
-        if (!chains.TryGetValue(chainId, out var chain)) return;
+        if (!chains.ContainsKey(chainId)) return;
 
-        activeChainId = chainId;
-
-        var set = unlocked.TryGetValue(chainId, out var existing) ? existing : new HashSet<string>();
-        if (!unlocked.ContainsKey(chainId)) unlocked[chainId] = set;
-
-        set.Add(BackgroundStage);
+        AddToJournal(chainId);
+        EnsureUI();
+        RebuildList();
         PlayReveal();
-    }
-
-    public void UnlockSegment(string chainId, string stage)
-    {
-        if (!chains.ContainsKey(chainId) || string.IsNullOrEmpty(stage)) return;
-
-        var set = unlocked.TryGetValue(chainId, out var existing) ? existing : new HashSet<string>();
-        if (!unlocked.ContainsKey(chainId)) unlocked[chainId] = set;
-
-        set.Add(stage);
-        if (activeChainId == chainId) Refresh();
     }
 
     public void SetSummary(string chainId, string summary)
     {
         if (!chains.ContainsKey(chainId)) return;
 
-        summaryOverride[chainId] = summary;
-        if (activeChainId == chainId) Refresh();
+        bodyOverride[chainId] = summary;
+        AddToJournal(chainId);
+        EnsureUI();
+        RebuildList();
+        PlayReveal();
+    }
+
+    void AddToJournal(string id)
+    {
+        if (!journalOrder.Contains(id)) journalOrder.Add(id);
+    }
+
+    bool IsRedacted(CausalChainData c)
+    {
+        return c.locked && !bodyOverride.ContainsKey(c.id);
+    }
+
+    string GetBody(CausalChainData c)
+    {
+        if (IsRedacted(c)) return MistText;
+        if (bodyOverride.TryGetValue(c.id, out var ov) && !string.IsNullOrEmpty(ov)) return ov;
+        return c.text;
     }
 
     void EnsureUI()
     {
         if (canvas != null) return;
 
-        var canvasGo = new GameObject("CausalChainCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasGo.transform.SetParent(transform, false);
-        canvas = canvasGo.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        if (EventSystem.current == null)
+        {
+            var esGo = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+            esGo.transform.SetParent(transform, false);
+        }
 
-        var scaler = canvasGo.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        canvas = UIFactory.CreateCanvas("JournalCanvas", transform);
 
-        panelRoot = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-        panelRoot.transform.SetParent(canvasGo.transform, false);
+        panelRoot = new GameObject("Journal", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+        panelRoot.transform.SetParent(canvas.transform, false);
         var bg = panelRoot.GetComponent<Image>();
         bg.color = UITheme.PaperBg;
         group = panelRoot.GetComponent<CanvasGroup>();
@@ -146,12 +144,12 @@ public class CausalChainManager : MonoBehaviour
         panelRect.anchorMin = new Vector2(0f, 1f);
         panelRect.anchorMax = new Vector2(0f, 1f);
         panelRect.pivot = new Vector2(0f, 1f);
-        panelRect.sizeDelta = new Vector2(400f, 0f);
+        panelRect.sizeDelta = new Vector2(420f, 0f);
         panelRect.anchoredPosition = new Vector2(20f, -20f);
 
         var layout = panelRoot.GetComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(20, 20, 16, 16);
-        layout.spacing = 8f;
+        layout.padding = new RectOffset(18, 18, 14, 14);
+        layout.spacing = 10f;
         layout.childAlignment = TextAnchor.UpperLeft;
         layout.childControlWidth = true;
         layout.childControlHeight = false;
@@ -162,77 +160,92 @@ public class CausalChainManager : MonoBehaviour
         fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        titleText = CreateText("Title", panelRoot.transform, 30, FontStyle.Bold, TextAnchor.MiddleLeft);
-        titleText.color = UITheme.InkPrimary;
-        var tle = titleText.gameObject.AddComponent<LayoutElement>();
-        tle.preferredHeight = 44f;
+        var header = UIFactory.CreateText("Header", panelRoot.transform, 26, FontStyle.Bold, TextAnchor.MiddleLeft, font);
+        header.text = "情报日志";
+        header.color = UITheme.SealRed;
+        header.raycastTarget = false;
+        var hle = header.gameObject.AddComponent<LayoutElement>();
+        hle.preferredHeight = 32f;
 
-        contentText = CreateText("Content", panelRoot.transform, 20, FontStyle.Normal, TextAnchor.UpperLeft);
-        contentText.color = UITheme.InkSecondary;
-        var cf = contentText.gameObject.AddComponent<ContentSizeFitter>();
-        cf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-        cf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        var cle = contentText.gameObject.AddComponent<LayoutElement>();
-        cle.minHeight = 28f;
+        var listGo = new GameObject("List", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+        listGo.transform.SetParent(panelRoot.transform, false);
+        listRoot = listGo.GetComponent<RectTransform>();
+        var llayout = listGo.GetComponent<VerticalLayoutGroup>();
+        llayout.spacing = 10f;
+        llayout.childAlignment = TextAnchor.UpperLeft;
+        llayout.childControlWidth = true;
+        llayout.childControlHeight = false;
+        llayout.childForceExpandWidth = true;
+        llayout.childForceExpandHeight = false;
+        var lfitter = listGo.GetComponent<ContentSizeFitter>();
+        lfitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        lfitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         panelRoot.SetActive(false);
     }
 
-    Text CreateText(string name, Transform parent, int size, FontStyle style, TextAnchor align)
+    void RebuildList()
     {
-        var go = new GameObject(name, typeof(RectTransform), typeof(Text));
-        go.transform.SetParent(parent, false);
-        var t = go.GetComponent<Text>();
-        if (font != null) t.font = font;
-        t.fontSize = size;
-        t.fontStyle = style;
-        t.alignment = align;
-        t.color = UITheme.InkPrimary;
-        t.horizontalOverflow = HorizontalWrapMode.Wrap;
-        t.verticalOverflow = VerticalWrapMode.Overflow;
-        return t;
+        foreach (var card in entryCards) Destroy(card);
+        entryCards.Clear();
+
+        foreach (var id in journalOrder)
+        {
+            if (!chains.TryGetValue(id, out var c)) continue;
+            entryCards.Add(CreateEntryCard(c));
+        }
     }
 
-    string ComputeSummary(CausalChainData chain)
+    GameObject CreateEntryCard(CausalChainData c)
     {
-        string summary = null;
-        if (summaryOverride.TryGetValue(activeChainId, out var ov))
-            summary = ov;
+        var cardGo = new GameObject("Entry_" + c.id, typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+        cardGo.transform.SetParent(listRoot, false);
+        var img = cardGo.GetComponent<Image>();
+        img.color = UITheme.PaperTop;
 
-        if (string.IsNullOrEmpty(summary))
-        {
-            var set = unlocked.TryGetValue(activeChainId, out var u) ? u : null;
-            if (chain.segments != null && set != null)
-            {
-                foreach (var seg in chain.segments)
-                {
-                    if (seg == null || !set.Contains(seg.stage)) continue;
-                    if (!string.IsNullOrEmpty(seg.summary)) summary = seg.summary;
-                }
-            }
-        }
+        var layout = cardGo.GetComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(14, 14, 10, 10);
+        layout.spacing = 6f;
+        layout.childAlignment = TextAnchor.UpperLeft;
+        layout.childControlWidth = true;
+        layout.childControlHeight = false;
+        layout.childForceExpandWidth = true;
+        layout.childForceExpandHeight = false;
 
-        if (string.IsNullOrEmpty(summary))
-            summary = "目前没有足够的情报表明这条因果链有价值...";
+        var fitter = cardGo.GetComponent<ContentSizeFitter>();
+        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        return summary;
+        bool redacted = IsRedacted(c);
+
+        var title = UIFactory.CreateText("Title", cardGo.transform, 22, FontStyle.Bold, TextAnchor.UpperLeft, font);
+        title.text = c.title + (redacted ? " · 迷雾" : "");
+        title.color = redacted ? UITheme.InkMuted : UITheme.InkPrimary;
+        title.raycastTarget = false;
+
+        var body = UIFactory.CreateText("Body", cardGo.transform, 20, FontStyle.Normal, TextAnchor.UpperLeft, font);
+        body.text = GetBody(c);
+        body.color = redacted ? UITheme.Redacted : UITheme.InkSecondary;
+        body.raycastTarget = false;
+        var bf = body.gameObject.AddComponent<ContentSizeFitter>();
+        bf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        bf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        var ble = body.gameObject.AddComponent<LayoutElement>();
+        ble.minHeight = 24f;
+
+        return cardGo;
     }
 
     void PlayReveal()
     {
         if (panelRoot == null) return;
-        if (!chains.TryGetValue(activeChainId, out var chain)) return;
         if (animRoutine != null) StopCoroutine(animRoutine);
 
         panelRoot.SetActive(true);
-        titleText.text = chain.title;
-        currentSummary = ComputeSummary(chain);
-        contentText.text = "";
-
         animRoutine = StartCoroutine(RevealRoutine());
     }
 
-    IEnumerator RevealRoutine()
+    System.Collections.IEnumerator RevealRoutine()
     {
         Vector2 target = panelRect.anchoredPosition;
         Vector2 from = target - new Vector2(panelRect.sizeDelta.x + 40f, 0f);
@@ -250,34 +263,6 @@ public class CausalChainManager : MonoBehaviour
         }
         panelRect.anchoredPosition = target;
         group.alpha = 1f;
-
-        if (contentText != null)
-            yield return UIAnim.Typewriter(contentText, currentSummary, UITheme.TypeCharDelay);
-
-        animRoutine = null;
-    }
-
-    void Refresh()
-    {
-        if (panelRoot == null) return;
-
-        if (string.IsNullOrEmpty(activeChainId) || !chains.TryGetValue(activeChainId, out var chain))
-        {
-            panelRoot.SetActive(false);
-            return;
-        }
-
-        panelRoot.SetActive(true);
-        titleText.text = chain.title;
-        currentSummary = ComputeSummary(chain);
-
-        if (animRoutine != null) StopCoroutine(animRoutine);
-        animRoutine = StartCoroutine(TypeRoutine());
-    }
-
-    IEnumerator TypeRoutine()
-    {
-        yield return UIAnim.Typewriter(contentText, currentSummary, UITheme.TypeCharDelay);
         animRoutine = null;
     }
 }

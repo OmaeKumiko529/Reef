@@ -68,14 +68,7 @@ public class AgencyNavUI : MonoBehaviour
     {
         if (canvas != null) return;
 
-        var canvasGo = new GameObject("AgencyNavCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasGo.transform.SetParent(transform, false);
-        canvas = canvasGo.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-        var scaler = canvasGo.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        canvas = UIFactory.CreateCanvas("AgencyNavCanvas", transform);
 
         if (EventSystem.current == null)
         {
@@ -83,8 +76,8 @@ public class AgencyNavUI : MonoBehaviour
             esGo.transform.SetParent(transform, false);
         }
 
-        BuildNavBar(canvasGo.transform);
-        BuildPanels(canvasGo.transform);
+        BuildNavBar(canvas.transform);
+        BuildPanels(canvas.transform);
     }
 
     void BuildNavBar(Transform parent)

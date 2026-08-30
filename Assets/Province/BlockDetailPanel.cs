@@ -26,17 +26,10 @@ public class BlockDetailPanel : MonoBehaviour
     {
         if (canvas != null) return;
 
-        var canvasGo = new GameObject("BlockDetailCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasGo.transform.SetParent(transform, false);
-        canvas = canvasGo.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-        var scaler = canvasGo.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        canvas = UIFactory.CreateCanvas("BlockDetailCanvas", transform);
 
         panelRoot = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
-        panelRoot.transform.SetParent(canvasGo.transform, false);
+        panelRoot.transform.SetParent(canvas.transform, false);
         var bg = panelRoot.GetComponent<Image>();
         bg.color = UITheme.PaperBg;
         group = panelRoot.GetComponent<CanvasGroup>();
@@ -48,8 +41,8 @@ public class BlockDetailPanel : MonoBehaviour
         panelRect.sizeDelta = new Vector2(380f, -TopReserve);
         panelRect.anchoredPosition = new Vector2(0f, -TopReserve * 0.5f);
 
-        titleText = CreateText("Title", panelRoot.transform, 32, FontStyle.Bold, TextAnchor.MiddleLeft);
-        titleGroup = titleText.GetComponent<CanvasGroup>();
+        titleText = UIFactory.CreateText("Title", panelRoot.transform, 32, FontStyle.Bold, TextAnchor.MiddleLeft, font);
+        titleGroup = titleText.gameObject.AddComponent<CanvasGroup>();
         var trt = titleText.rectTransform;
         trt.anchorMin = new Vector2(0f, 1f);
         trt.anchorMax = new Vector2(1f, 1f);
@@ -57,8 +50,8 @@ public class BlockDetailPanel : MonoBehaviour
         trt.offsetMin = new Vector2(20f, -80f);
         trt.offsetMax = new Vector2(-20f, 0f);
 
-        contentText = CreateText("Content", panelRoot.transform, 22, FontStyle.Normal, TextAnchor.UpperLeft);
-        contentGroup = contentText.GetComponent<CanvasGroup>();
+        contentText = UIFactory.CreateText("Content", panelRoot.transform, 22, FontStyle.Normal, TextAnchor.UpperLeft, font);
+        contentGroup = contentText.gameObject.AddComponent<CanvasGroup>();
         var crt = contentText.rectTransform;
         crt.anchorMin = new Vector2(0f, 0f);
         crt.anchorMax = new Vector2(1f, 1f);
@@ -67,21 +60,6 @@ public class BlockDetailPanel : MonoBehaviour
         crt.offsetMax = new Vector2(-20f, -100f);
 
         panelRoot.SetActive(false);
-    }
-
-    Text CreateText(string name, Transform parent, int size, FontStyle style, TextAnchor align)
-    {
-        var go = new GameObject(name, typeof(RectTransform), typeof(Text), typeof(CanvasGroup));
-        go.transform.SetParent(parent, false);
-        var t = go.GetComponent<Text>();
-        if (font != null) t.font = font;
-        t.fontSize = size;
-        t.fontStyle = style;
-        t.alignment = align;
-        t.color = UITheme.InkPrimary;
-        t.horizontalOverflow = HorizontalWrapMode.Wrap;
-        t.verticalOverflow = VerticalWrapMode.Overflow;
-        return t;
     }
 
     public void Show(ProvinceData province, BlockState state)

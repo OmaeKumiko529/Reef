@@ -129,17 +129,10 @@ public class GameClock : MonoBehaviour
 
     void BuildUI()
     {
-        var canvasGo = new GameObject("GameClockCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasGo.transform.SetParent(transform, false);
-        var canvas = canvasGo.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-        var scaler = canvasGo.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        var canvas = UIFactory.CreateCanvas("GameClockCanvas", transform);
 
         var panelGo = new GameObject("ClockPanel", typeof(RectTransform), typeof(Image));
-        panelGo.transform.SetParent(canvasGo.transform, false);
+        panelGo.transform.SetParent(canvas.transform, false);
         var panelImg = panelGo.GetComponent<Image>();
         panelImg.color = UITheme.PaperBg;
 

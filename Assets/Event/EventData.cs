@@ -15,7 +15,7 @@ public class EffectData
     public string blockId;          // add_influence / add_ideology / add_interest_group / penetrate_block
     public string flag;             // set_flag / add_ideology / add_interest_group
     public string chainId;          // reveal_causal_chain / set_chain_summary
-    public string summary;          // set_chain_summary
+    public string text;             // set_chain_summary
     public float value;             // add_influence / set_flag / add_ideology / add_interest_group
 }
 

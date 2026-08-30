@@ -45,17 +45,10 @@ public class TopBarUI : MonoBehaviour
     {
         if (canvas != null) return;
 
-        var canvasGo = new GameObject("TopBarCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasGo.transform.SetParent(transform, false);
-        canvas = canvasGo.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-        var scaler = canvasGo.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        canvas = UIFactory.CreateCanvas("TopBarCanvas", transform);
 
         var panelGo = new GameObject("TopBar", typeof(RectTransform), typeof(Image), typeof(HorizontalLayoutGroup));
-        panelGo.transform.SetParent(canvasGo.transform, false);
+        panelGo.transform.SetParent(canvas.transform, false);
         var img = panelGo.GetComponent<Image>();
         img.color = UITheme.PaperBg;
 

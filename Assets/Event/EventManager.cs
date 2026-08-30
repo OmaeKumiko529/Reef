@@ -225,7 +225,7 @@ public class EventManager : MonoBehaviour
                 break;
             }
             case "set_chain_summary":
-                CausalChainManager.Instance.SetSummary(fx.chainId, fx.summary);
+                CausalChainManager.Instance.SetSummary(fx.chainId, fx.text);
                 break;
             case "penetrate_block":
                 PenetrationManager.Instance.ForcePenetrate(fx.blockId);
@@ -237,18 +237,10 @@ public class EventManager : MonoBehaviour
     {
         if (canvas != null) return;
 
-        var canvasGo = new GameObject("EventCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasGo.transform.SetParent(transform, false);
-        canvas = canvasGo.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 100;
-
-        var scaler = canvasGo.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        canvas = UIFactory.CreateCanvas("EventCanvas", transform, 100);
 
         var maskGo = new GameObject("Mask", typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
-        maskGo.transform.SetParent(canvasGo.transform, false);
+        maskGo.transform.SetParent(canvas.transform, false);
         var maskImg = maskGo.GetComponent<Image>();
         maskImg.color = UITheme.Scrim;
         maskGroup = maskGo.GetComponent<CanvasGroup>();
@@ -284,14 +276,14 @@ public class EventManager : MonoBehaviour
         pfitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
         pfitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        titleText = CreateText("Title", panelGo.transform, 34, FontStyle.Bold, TextAnchor.MiddleLeft);
+        titleText = UIFactory.CreateText("Title", panelGo.transform, 34, FontStyle.Bold, TextAnchor.MiddleLeft, font);
         MakeAutoHeight(titleText, 44f);
 
-        storyText = CreateText("Story", panelGo.transform, 20, FontStyle.Italic, TextAnchor.UpperLeft);
+        storyText = UIFactory.CreateText("Story", panelGo.transform, 20, FontStyle.Italic, TextAnchor.UpperLeft, font);
         storyText.color = UITheme.InkSecondary;
         MakeAutoHeight(storyText, 20f);
 
-        descText = CreateText("Desc", panelGo.transform, 24, FontStyle.Normal, TextAnchor.UpperLeft);
+        descText = UIFactory.CreateText("Desc", panelGo.transform, 24, FontStyle.Normal, TextAnchor.UpperLeft, font);
         MakeAutoHeight(descText, 30f);
 
         var optsGo = new GameObject("Options", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
@@ -309,13 +301,27 @@ public class EventManager : MonoBehaviour
         var ofitter = optsGo.GetComponent<ContentSizeFitter>();
         ofitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        tooltipRoot = new GameObject("Tooltip", typeof(RectTransform), typeof(Image));
-        tooltipRoot.transform.SetParent(canvasGo.transform, false);
+        tooltipRoot = new GameObject("Tooltip", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
+        tooltipRoot.transform.SetParent(canvas.transform, false);
         var ttipImg = tooltipRoot.GetComponent<Image>();
         ttipImg.color = UITheme.PaperTop;
         tooltipRect = tooltipRoot.GetComponent<RectTransform>();
         tooltipRect.pivot = new Vector2(0f, 1f);
         tooltipRect.sizeDelta = new Vector2(360f, 120f);
+
+        var tlayout = tooltipRoot.GetComponent<VerticalLayoutGroup>();
+        tlayout.padding = new RectOffset(12, 12, 8, 8);
+        tlayout.childControlWidth = true;
+        tlayout.childControlHeight = true;
+        tlayout.childForceExpandWidth = true;
+        tlayout.childForceExpandHeight = false;
+
+        var tfitter = tooltipRoot.GetComponent<ContentSizeFitter>();
+        tfitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        tfitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        var tle = tooltipRoot.AddComponent<LayoutElement>();
+        tle.minHeight = 40f;
 
         var ttipTextGo = new GameObject("Text", typeof(RectTransform), typeof(Text));
         ttipTextGo.transform.SetParent(tooltipRoot.transform, false);
@@ -325,31 +331,16 @@ public class EventManager : MonoBehaviour
         tooltipText.alignment = TextAnchor.UpperLeft;
         tooltipText.color = UITheme.InkPrimary;
         tooltipText.horizontalOverflow = HorizontalWrapMode.Wrap;
-        tooltipText.verticalOverflow = VerticalWrapMode.Overflow;
+        tooltipText.verticalOverflow = VerticalWrapMode.Truncate;
         var t4 = tooltipText.rectTransform;
         t4.anchorMin = Vector2.zero;
         t4.anchorMax = Vector2.one;
-        t4.offsetMin = new Vector2(12f, 8f);
-        t4.offsetMax = new Vector2(-12f, -8f);
+        t4.offsetMin = Vector2.zero;
+        t4.offsetMax = Vector2.zero;
 
         tooltipRoot.SetActive(false);
 
         eventRoot.SetActive(false);
-    }
-
-    Text CreateText(string name, Transform parent, int size, FontStyle style, TextAnchor align)
-    {
-        var go = new GameObject(name, typeof(RectTransform), typeof(Text));
-        go.transform.SetParent(parent, false);
-        var t = go.GetComponent<Text>();
-        if (font != null) t.font = font;
-        t.fontSize = size;
-        t.fontStyle = style;
-        t.alignment = align;
-        t.color = UITheme.InkPrimary;
-        t.horizontalOverflow = HorizontalWrapMode.Wrap;
-        t.verticalOverflow = VerticalWrapMode.Overflow;
-        return t;
     }
 
     void MakeAutoHeight(Text t, float minHeight)

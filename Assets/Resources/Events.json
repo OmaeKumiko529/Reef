@@ -45,7 +45,7 @@
             { "type": "add_influence", "blockId": "1008", "value": -20 },
             { "type": "add_ideology", "blockId": "1008", "flag": "socialism", "value": 0.10 },
             { "type": "add_interest_group", "blockId": "1008", "flag": "labor", "value": 0.10 },
-            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "summary": "行政效率正在受到影响..." }
+            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "行政效率正在受到影响..." }
           ]
         },
         {
@@ -54,7 +54,7 @@
           "effects": [
             { "type": "add_influence", "blockId": "1008", "value": -20 },
             { "type": "add_ideology", "blockId": "1008", "flag": "socialism", "value": 0.10 },
-            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "summary": "风暴似乎正在逼近..." },
+            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "风暴似乎正在逼近..." },
             { "type": "penetrate_block", "blockId": "1008" }
           ]
         }

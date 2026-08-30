@@ -3,48 +3,8 @@
     {
       "id": "spring_of_the_people",
       "title": "人民之春",
-      "segments": [
-        {
-          "stage": "background",
-          "name": "背景",
-          "hint": "根本原因",
-          "text": "第二次世界大战的结束，为整个世界带来新的黎明。然而，冷战的种子已经埋下，卢泰西亚暗流涌动。\n卢泰西亚究竟会走向何方？道路在脚下。",
-          "summary": "目前没有足够的情报表明这条因果链有价值...",
-          "locked": true
-        },
-        {
-          "stage": "trigger",
-          "name": "导火索",
-          "hint": "直接原因",
-          "text": "",
-          "summary": "冲突正在爆发...",
-          "locked": true
-        },
-        {
-          "stage": "ferment",
-          "name": "发酵",
-          "hint": "过程",
-          "text": "",
-          "summary": "",
-          "locked": true
-        },
-        {
-          "stage": "outcome",
-          "name": "结局",
-          "hint": "结果",
-          "text": "",
-          "summary": "",
-          "locked": true
-        },
-        {
-          "stage": "impact",
-          "name": "影响",
-          "hint": "诱因",
-          "text": "",
-          "summary": "",
-          "locked": true
-        }
-      ]
+      "text": "第二次世界大战的结束，为整个世界带来新的黎明。然而，冷战的种子已经埋下，卢泰西亚暗流涌动。\n卢泰西亚究竟会走向何方？道路在脚下。",
+      "locked": true
     }
   ]
 }

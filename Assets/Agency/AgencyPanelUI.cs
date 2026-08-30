@@ -50,17 +50,10 @@ public class AgencyPanelUI : MonoBehaviour
     {
         if (canvas != null) return;
 
-        var canvasGo = new GameObject("AgencyPanelCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasGo.transform.SetParent(transform, false);
-        canvas = canvasGo.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-
-        var scaler = canvasGo.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
+        canvas = UIFactory.CreateCanvas("AgencyPanelCanvas", transform);
 
         panelRoot = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-        panelRoot.transform.SetParent(canvasGo.transform, false);
+        panelRoot.transform.SetParent(canvas.transform, false);
         var img = panelRoot.GetComponent<Image>();
         img.color = UITheme.PaperBg;
         group = panelRoot.GetComponent<CanvasGroup>();
