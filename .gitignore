@@ -106,5 +106,5 @@ InitTestScene*.unity*
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
-# opencode local skills
-.opencode/
+# opencode local deps (skills/ and agent/ are versioned)
+.opencode/node_modules/
