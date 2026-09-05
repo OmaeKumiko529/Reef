@@ -213,15 +213,13 @@ public class EventManager : MonoBehaviour
             case "add_ideology":
             {
                 var st = BlockManager.Instance.GetState(fx.blockId);
-                if (st != null && st.ideologies != null && st.ideologies.ContainsKey(fx.flag))
-                    st.ideologies[fx.flag] += fx.value;
+                if (st != null) BlockState.ShiftShare(st.ideologies, fx.flag, fx.value);
                 break;
             }
             case "add_interest_group":
             {
                 var st = BlockManager.Instance.GetState(fx.blockId);
-                if (st != null && st.interestGroups != null && st.interestGroups.ContainsKey(fx.flag))
-                    st.interestGroups[fx.flag] += fx.value;
+                if (st != null) BlockState.ShiftShare(st.interestGroups, fx.flag, fx.value);
                 break;
             }
             case "set_chain_summary":

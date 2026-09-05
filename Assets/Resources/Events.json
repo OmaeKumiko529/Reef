@@ -2,16 +2,16 @@
   "events": [
     {
       "id": "evt_start",
-      "title": "新黎明",
-      "story": "武装起来，公民们！\n组织起你们的队伍，\n前进，前进！\n只有敌人的不洁之血，\n才能灌溉我们的犁沟！",
-      "description": "第二次世界大战的结束，为整个世界带来新的黎明。然而，冷战的种子已经埋下，卢泰西亚暗流涌动。\n作为新上任的间谍主管，请你带领卢泰西亚人民冲破迷雾，在历史上画出浓墨重彩的一笔。",
+      "title": "TestEvent1",
+      "story": "Story...",
+      "description": "Text...",
       "trigger": [
         { "type": "time_point", "year": 1945, "month": 9, "day": 4 }
       ],
       "options": [
         {
-          "text": "卢泰西亚需要变革。",
-          "hint": "这将暂时为卢泰西亚开启倒向社会主义阵营与民主主义阵营的选择。",
+          "text": "OptionA",
+          "hint": "HintA",
           "effects": [
             { "type": "add_influence", "blockId": "1008", "value": 20 },
             { "type": "set_flag", "flag": "revolution", "value": 1 },
@@ -19,8 +19,8 @@
           ]
         },
         {
-          "text": "我们不能得罪法西斯！",
-          "hint": "这将暂时为卢泰西亚断绝倒向社会主义阵营与民主主义阵营的选择。",
+          "text": "OptionB",
+          "hint": "HintB",
           "effects": [
             { "type": "add_influence", "blockId": "1008", "value": -10 },
             { "type": "set_flag", "flag": "revolution", "value": 0 }
@@ -30,31 +30,31 @@
     },
     {
       "id": "evt_labor_strike",
-      "title": "劳工罢工",
-      "story": "工头站在工厂的机器上，看着工人们的队伍在街道上重重叠叠。他抽了一口烟，随后缓缓地呼出来。\n\"我们会赢的。\"他掐灭香烟，灰尘落在肮脏的地板上。",
-      "description": "帕瑞兹省爆发了工人运动，数千工人走上街头，抗议法西斯高压政策与严苛配额的劳动，要求恢复自由雇佣制，放宽工会监督权。",
+      "title": "TestEvent2",
+      "story": "Story...",
+      "description": "Text...",
       "trigger": [
         { "type": "time_point", "year": 1945, "month": 9, "day": 7 },
         { "type": "flag_compare", "flag": "revolution", "op": "eq", "value": 1 }
       ],
       "options": [
         {
-          "text": "让总统去解决。",
-          "hint": "",
+          "text": "OptionA",
+          "hint": "HintA",
           "effects": [
             { "type": "add_influence", "blockId": "1008", "value": -20 },
             { "type": "add_ideology", "blockId": "1008", "flag": "socialism", "value": 0.10 },
             { "type": "add_interest_group", "blockId": "1008", "flag": "labor", "value": 0.10 },
-            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "行政效率正在受到影响..." }
+            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "占位链摘要A..." }
           ]
         },
         {
-          "text": "我们将正式介入此事。",
-          "hint": "",
+          "text": "OptionB",
+          "hint": "HintB",
           "effects": [
             { "type": "add_influence", "blockId": "1008", "value": -20 },
             { "type": "add_ideology", "blockId": "1008", "flag": "socialism", "value": 0.10 },
-            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "风暴似乎正在逼近..." },
+            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "占位链摘要B..." },
             { "type": "penetrate_block", "blockId": "1008" }
           ]
         }

@@ -64,4 +64,44 @@ public class BlockState
             result[id] = 1f / fallbackIds.Length;
         return result;
     }
+
+    /// <summary>
+    /// 零和比例转移：把 targetKey 的份额移动 delta，其余分量按当前占比等比例补偿，
+    /// 保持字典总和恒为 1（即各占比之和恒为 100%）。
+    /// </summary>
+    public static void ShiftShare(Dictionary<string, float> shares, string targetKey, float delta)
+    {
+        if (shares == null || shares.Count == 0 || !shares.ContainsKey(targetKey)) return;
+
+        float target = Mathf.Clamp01(shares[targetKey]);
+        float newTarget = Mathf.Clamp01(target + delta);
+
+        var others = new List<string>();
+        float othersSum = 0f;
+        foreach (var kv in shares)
+        {
+            if (kv.Key == targetKey) continue;
+            others.Add(kv.Key);
+            othersSum += kv.Value;
+        }
+
+        if (others.Count == 0)
+        {
+            shares[targetKey] = 1f;
+            return;
+        }
+
+        if (othersSum <= 1e-6f)
+        {
+            float each = (1f - newTarget) / others.Count;
+            foreach (var k in others) shares[k] = each;
+        }
+        else
+        {
+            float scale = (1f - newTarget) / othersSum;
+            foreach (var k in others) shares[k] *= scale;
+        }
+
+        shares[targetKey] = newTarget;
+    }
 }
