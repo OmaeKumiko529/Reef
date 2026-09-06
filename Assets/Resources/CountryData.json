@@ -1,0 +1,9 @@
+{
+  "id": "lutetia",
+  "displayName": "卢泰西亚国",
+  "ideologyId": "democracy",
+  "leader": {
+    "name": "占位领导人",
+    "ideologyId": "democracy"
+  }
+}

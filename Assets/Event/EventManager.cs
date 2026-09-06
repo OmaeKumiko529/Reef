@@ -228,6 +228,15 @@ public class EventManager : MonoBehaviour
             case "penetrate_block":
                 PenetrationManager.Instance.ForcePenetrate(fx.blockId);
                 break;
+            case "set_ideology":
+                CountryManager.Instance.SetIdeology(fx.ideologyId);
+                break;
+            case "set_country_name":
+                CountryManager.Instance.SetName(fx.text);
+                break;
+            case "set_leader":
+                CountryManager.Instance.SetLeader(fx.name, fx.ideologyId);
+                break;
         }
     }
 
@@ -530,6 +539,12 @@ public class EventManager : MonoBehaviour
                 return "更新因果链「" + CausalChainManager.Instance.GetTitle(fx.chainId) + "」的描述";
             case "penetrate_block":
                 return "将 " + GetBlockName(fx.blockId) + " 加入渗透列表";
+            case "set_ideology":
+                return "转变国家意识形态为「" + GameContent.Name(fx.ideologyId) + "」（政权更迭）";
+            case "set_country_name":
+                return "将国名改为「" + fx.text + "」";
+            case "set_leader":
+                return "更换领导人为「" + fx.name + "」";
             default:
                 return fx.type;
         }

@@ -28,11 +28,15 @@ public class TopBarUI : MonoBehaviour
     public Font font;
 
     Canvas canvas;
+    Text countryText;
     Text powerText;
     Text pointsText;
     Text techText;
     Coroutine powerRoutine;
     Coroutine pointsRoutine;
+
+    void OnEnable() { CountryManager.OnCountryChanged += Refresh; }
+    void OnDisable() { CountryManager.OnCountryChanged -= Refresh; }
 
     public void Setup(Font font)
     {
@@ -56,7 +60,7 @@ public class TopBarUI : MonoBehaviour
         rt.anchorMin = new Vector2(0.5f, 1f);
         rt.anchorMax = new Vector2(0.5f, 1f);
         rt.pivot = new Vector2(0.5f, 1f);
-        rt.sizeDelta = new Vector2(720f, 50f);
+        rt.sizeDelta = new Vector2(1000f, 50f);
         rt.anchoredPosition = new Vector2(0f, -20f);
 
         var layout = panelGo.GetComponent<HorizontalLayoutGroup>();
@@ -68,6 +72,7 @@ public class TopBarUI : MonoBehaviour
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = true;
 
+        countryText = CreateLabel("Country", panelGo.transform);
         powerText = CreateLabel("Power", panelGo.transform);
         pointsText = CreateLabel("Points", panelGo.transform);
         techText = CreateLabel("Tech", panelGo.transform);
@@ -92,6 +97,14 @@ public class TopBarUI : MonoBehaviour
         powerText.text = "行政力 " + administrativePower;
         pointsText.text = "情报点 " + intelligencePoints;
         techText.text = "正在研究：暂无（科技树开发中）";
+
+        var c = CountryManager.Instance.country;
+        if (c != null && countryText != null)
+        {
+            string ideology = GameContent.Name(c.ideologyId);
+            string leader = c.leader != null ? c.leader.name : "";
+            countryText.text = c.displayName + " · " + ideology + " · 领导人 " + leader;
+        }
     }
 
     public void AddAdministrativePower(int amount)
