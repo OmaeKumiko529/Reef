@@ -14,6 +14,8 @@ description: 更新「暗礁」项目活动热力图（飞书电子表格）。�
 - spreadsheet token：`ZMBVsLgpLhzLNgtGKevcLMAFnzc`
 - sheet_id：`e87fd2`（Sheet1）
 
+> ⚠️ **读这张表必须 `--as user`**：bot 身份没有 `sheets:spreadsheet:read` scope，会返回 `app_scope_not_applied: ... has not applied for the required scope(s): sheets:spreadsheet:read`。若 `lark-cli auth status` 显示 user 身份 `missing (refresh token expired)`，先 `lark-cli auth login`。
+
 ## 人员身份
 
 热力图按人拆分时的身份映射：
@@ -50,7 +52,7 @@ git -C "F:\Projects\Reef" log --pretty="%ad" --date=short
 | 新成员索引 | `CEqaw7NaPiSx22kVPDJc0HGknBf` |
 
 ```powershell
-lark-cli docs +history-list --doc <token> --page-size 20            # 首页
+lark-cli docs +history-list --doc <token> --page-size 20              # 首页
 lark-cli docs +history-list --doc <token> --page-size 20 --page-token <token>   # 翻页
 ```
 
@@ -100,3 +102,4 @@ total = git 提交数 + 文档历史快照数
 
 - 文档编辑数是**版本快照数**（非逐字编辑），量级远大于 git，图上颜色基本由文档编辑主导；git 只能从明细表分辨。
 - 飞书无可订阅的「文档编辑」实时事件，只能定时轮询刷新，做不到实时。
+- 按项目规范（《创作规范与AI CLI事宜》1.4.2 与信息公示板），本项目**在意 Token 成本**。翻页取历史时按需取窗口范围，不要无脑拉全量。

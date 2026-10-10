@@ -45,3 +45,10 @@ a29882a3-2026-08-30 更新日志
 2.2.3.2.1 因果链：废弃五段式说明，新增设计思路
 2.2.4.1.1 技术栈：事件示例新增 reveal_causal_chain 效果
 ```
+
+## 取数要点
+
+- 提交哈希与日期：`git log -1 --format="%h %ad" --date=short`（需要完整 8 位时用 `%H` 截断）。
+- 作者：`git log -1 --format="%an"`。目前已核对过的作者名是 `黄前不长酒梅子`（项目主理人 FishMoy），git 提交目前全部归他。
+- 「云文档变化」要对照飞书文档的版本历史或 diff 来写；项目文档的 token 索引见 `lark-docs` 与 `reef-creating-spec` 两个 skill。
+- 日期必须按 **UTC+8** 换算：git 的 `%ad` 已按本地时区输出，`lark-cli` 的 `edit_time` 则是 UTC（`...Z`），后者需要 +8 小时再取日期。

@@ -75,3 +75,11 @@ description: 涉及 Unity 项目操作（编译校验、生成构建、跑测试
 - 首次运行可能因资源导入较慢（本项目 `Library/` 已存在，通常较快）。
 - `-executeMethod` 的目标方法必须是 `public static void`（无参或 Unity 支持的特有签名）。
 - 输出大量时按 `-logFile` 文件回读定位，不要只看 stdout。
+- `Logs/` 已被 `.gitignore` 忽略，把 batchmode 日志写在这里不会污染仓库。
+
+## 本项目现状（截至源码提交 f2f44e2）
+
+- `Assets` 下**没有任何 `.asmdef`**：全部运行期脚本（含 `Assets\Editor\*`）都在 `Assembly-CSharp` / `Assembly-CSharp-Editor` 里，所以编译校验能覆盖全部代码，但也没有模块边界。
+- **没有任何测试文件**。`com.unity.test-framework` 虽然在 `Packages/manifest.json` 里，但 `-runTests` 目前跑的是空集 —— 不要把它「退出码 0」误读为「测试通过」。要真正加测试，需先为被测代码建 asmdef。
+- 已知的编辑器副作用：`Assets\Editor\AudioClipAssigner.cs` 用 `[InitializeOnLoad]` + `sceneOpened` 在**每次打开场景时**改写 `ProvinceClickHandler` 的音频引用并 `MarkSceneDirty`。批处理跑编译/测试后若发现场景有意外改动，先怀疑它。
+- `Assets\_Recovery\0.unity` 是一份漂移的旧场景（缺 `ProvinceClickHandler` 与 `CameraPanController`），不要拿它做验证基线，构建列表里只有 `Assets/Scenes/SampleScene.unity`。
