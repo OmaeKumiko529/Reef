@@ -2,7 +2,7 @@
   "provinces": [
     {
       "id": "1001",
-      "displayName": "1001",
+      "displayName": "塞夸纳省",
       "mapColor": "#E1D875",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -12,7 +12,7 @@
     },
     {
       "id": "1002",
-      "displayName": "1002",
+      "displayName": "比图里格省",
       "mapColor": "#6DE5C0",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -22,7 +22,7 @@
     },
     {
       "id": "1003",
-      "displayName": "1003",
+      "displayName": "安比亚尼省",
       "mapColor": "#13AE58",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -32,7 +32,7 @@
     },
     {
       "id": "1004",
-      "displayName": "1004",
+      "displayName": "卢格杜努姆省",
       "mapColor": "#427BA5",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -42,7 +42,7 @@
     },
     {
       "id": "1005",
-      "displayName": "1005",
+      "displayName": "特雷维尔省",
       "mapColor": "#395D36",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -52,7 +52,7 @@
     },
     {
       "id": "1006",
-      "displayName": "1006",
+      "displayName": "维内蒂省",
       "mapColor": "#DEADCD",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -62,7 +62,7 @@
     },
     {
       "id": "1007",
-      "displayName": "1007",
+      "displayName": "马西利亚省",
       "mapColor": "#8BE7E7",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -82,7 +82,7 @@
     },
     {
       "id": "1009",
-      "displayName": "1009",
+      "displayName": "雷米省",
       "mapColor": "#EAEF3D",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -92,7 +92,7 @@
     },
     {
       "id": "1010",
-      "displayName": "1010",
+      "displayName": "塞农省",
       "mapColor": "#0D6716",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -102,7 +102,7 @@
     },
     {
       "id": "1011",
-      "displayName": "1011",
+      "displayName": "阿维尔尼省",
       "mapColor": "#9F38E1",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -112,7 +112,7 @@
     },
     {
       "id": "1012",
-      "displayName": "1012",
+      "displayName": "纳姆内特斯省",
       "mapColor": "#4545FF",
       "cultureId": "culture_lutetian",
       "core": true,
@@ -122,7 +122,7 @@
     },
     {
       "id": "1013",
-      "displayName": "1013",
+      "displayName": "林贡省",
       "mapColor": "#C810A2",
       "cultureId": "culture_lutetian",
       "core": true,

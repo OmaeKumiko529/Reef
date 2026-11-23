@@ -24,28 +24,23 @@ public class AgencyNavUI : MonoBehaviour
         }
     }
 
-    static readonly string[] DeptNames = { "渗透", "科技", "内务", "情报", "机构" };
-    static readonly string[] DeptDescriptions =
-    {
-        "渗透处：执行渗透行动，提高对非核心区块的渗透力。",
-        "科技处：负责科技研发，影响我方与敌方的破译难度。",
-        "内务处：督察政府，提高行政效率。",
-        "情报处：处理情报并汇总报告，产出情报点。",
-        "机构：查看各部门投入等级。"
-    };
+    /// <summary>
+    /// 入口数量：与 <see cref="UICopy.Dept.All"/> 的数组长度保持一致，但**不再写死**——
+    /// 长度由文案表驱动（契约 2.3 禁止程序写死部门数量）。
+    /// </summary>
+    static int DeptCount => UICopy.Dept.All.Length;
 
     public Font font;
     public AudioClip uiClickClip;
 
     AudioSource audioSource;
     Canvas canvas;
-    GameObject[] panels = new GameObject[5];
-    CanvasGroup[] panelGroups = new CanvasGroup[5];
-    Image[] buttonBgs = new Image[5];
-    Text[] buttonLabels = new Text[5];
-    Coroutine animRoutine;
-    int currentIndex = -1;
+    Image[] buttonBgs;
+    Text[] buttonLabels;
+    Text[] buttonNotes;
+    UIButtonState[] buttonStates;   // 契约 70_ §6.0：五态（NavBar 模式，下沿 3px 朱砂选中条）
 
+    /// <summary>部门浮层动画时长。L-07 删除死面板后暂无消费者，阶段 B 重建浮层时复用。</summary>
     public float fadeDuration = 0.2f;
 
     public void Setup(Font font, AudioClip clip)
@@ -68,7 +63,7 @@ public class AgencyNavUI : MonoBehaviour
     {
         if (canvas != null) return;
 
-        canvas = UIFactory.CreateCanvas("AgencyNavCanvas", transform);
+        canvas = UIFactory.CreateCanvas("AgencyNavCanvas", transform, UISorting.Hud);
 
         if (EventSystem.current == null)
         {
@@ -76,156 +71,145 @@ public class AgencyNavUI : MonoBehaviour
             esGo.transform.SetParent(transform, false);
         }
 
+        // 数组长度由文案表驱动（契约 2.3：禁止写死部门数量）
+        buttonBgs = new Image[DeptCount];
+        buttonLabels = new Text[DeptCount];
+        buttonNotes = new Text[DeptCount];
+        buttonStates = new UIButtonState[DeptCount];
+
         BuildNavBar(canvas.transform);
-        BuildPanels(canvas.transform);
+        // 契约 70_ §9.0 L-07：原 BuildPanels 的部门死面板已整体删除
+        //（未开放部门恒不可点，浮层内容只是"开发中"承诺的重复）。
+        // 未开放部门仍由 ShowPanel 拦截；已开放部门的浮层在阶段 B 用 UIPanelChrome 重建。
     }
+
+    /// <summary>最后一个入口是「机构总览」聚合视图，本身不是部门：它承载各部门的等级与投入，恒可用。</summary>
+    static bool IsOverview(int index) => index == DeptCount - 1;
+
+    /// <summary>该部门是否已开放；文案表长度异常时按"未开放"处理（宁可不给入口，也不承诺不存在的系统）。</summary>
+    static bool IsImplemented(int index)
+    {
+        var impl = UICopy.Dept.Implemented;
+        return impl != null && index >= 0 && index < impl.Length && impl[index];
+    }
+
+    /// <summary>
+    /// 该入口能不能点。部门入口看 <see cref="UICopy.Dept.Implemented"/>；
+    /// 总览入口恒可用——它不承诺新系统，只是把已有部门的数据聚合展示，
+    /// 而渗透等级唯一的提升入口就在这个面板里，禁用它会让玩家彻底无法升级渗透。
+    /// </summary>
+    static bool IsAvailable(int index) => IsOverview(index) || IsImplemented(index);
 
     void BuildNavBar(Transform parent)
     {
-        var barGo = new GameObject("BottomNav", typeof(RectTransform), typeof(Image));
-        barGo.transform.SetParent(parent, false);
-
-        var barRt = barGo.GetComponent<RectTransform>();
-        barRt.anchorMin = new Vector2(0f, 0f);
-        barRt.anchorMax = new Vector2(1f, 0f);
-        barRt.pivot = new Vector2(0.5f, 0f);
-        barRt.sizeDelta = new Vector2(0f, 80f);
-        barRt.anchoredPosition = Vector2.zero;
-
-        var barImg = barGo.GetComponent<Image>();
-        barImg.color = UITheme.PaperBg;
+        // 契约 70_ §7.1：底栏 = Strip（纸底 + 单层 1px 框 + 投影）；布局组挂在 Content 上，
+        // 装饰层是 Root 的兄弟节点、不参与排版，因此尺寸与 L-02 的 (0,0)-(1,0)/80 完全一致。
+        var chrome = UIPanelChrome.CreateStretched(parent, "BottomNav", ChromeKind.Strip, null,
+            new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f),
+            new Vector2(0f, UITheme.SafeBottom), Vector2.zero, UISorting.Hud);
+        var barGo = chrome.Content.gameObject;
 
         var layout = barGo.AddComponent<HorizontalLayoutGroup>();
         layout.childAlignment = TextAnchor.MiddleCenter;
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = true;
-        layout.spacing = 8f;
+        layout.spacing = UITheme.SpaceSm;
         layout.padding = new RectOffset(8, 8, 8, 8);
 
-        for (int i = 0; i < DeptNames.Length; i++)
+        for (int i = 0; i < DeptCount; i++)
         {
             int idx = i;
-            var btnGo = new GameObject("Btn_" + DeptNames[i], typeof(RectTransform), typeof(Image), typeof(Button));
+            string deptName = UICopy.Dept.All[i];
+
+            var btnGo = new GameObject("Btn_" + deptName, typeof(RectTransform), typeof(Image), typeof(Button));
             btnGo.transform.SetParent(barGo.transform, false);
 
             var btn = btnGo.GetComponent<Button>();
             btn.transition = Selectable.Transition.None;
-            var bg = btnGo.GetComponent<Image>();
-            bg.color = UITheme.PaperTop;
-            buttonBgs[i] = bg;
+            buttonBgs[i] = btnGo.GetComponent<Image>();
 
-            var textGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
-            textGo.transform.SetParent(btnGo.transform, false);
-            var t = textGo.GetComponent<Text>();
-            if (font != null) t.font = font;
-            t.text = DeptNames[i];
-            t.fontSize = 26;
-            t.alignment = TextAnchor.MiddleCenter;
-            t.color = UITheme.InkPrimary;
-            buttonLabels[i] = t;
+            buttonLabels[i] = UIFactory.CreateStretchText("Label", btnGo.transform,
+                UITheme.FontSubtitle, FontStyle.Normal, TextAnchor.MiddleCenter, font);
+            buttonLabels[i].text = deptName;
 
-            var trt = textGo.GetComponent<RectTransform>();
-            trt.anchorMin = Vector2.zero;
-            trt.anchorMax = Vector2.one;
-            trt.offsetMin = Vector2.zero;
-            trt.offsetMax = Vector2.zero;
+            // 未开放部门：右下角「开发中」角标（契约 2.3 的 Common.InDevelopment）
+            buttonNotes[i] = UIFactory.CreateText("Note", btnGo.transform,
+                UITheme.FontCaption, FontStyle.Normal, TextAnchor.LowerRight, font);
+            var nrt = buttonNotes[i].rectTransform;
+            nrt.anchorMin = new Vector2(1f, 0f);
+            nrt.anchorMax = new Vector2(1f, 0f);
+            nrt.pivot = new Vector2(1f, 0f);
+            nrt.sizeDelta = new Vector2(80f, 24f);
+            nrt.anchoredPosition = new Vector2(-UITheme.SpaceSm, 6f);
+            buttonNotes[i].text = UICopy.Common.InDevelopment;
+            buttonNotes[i].color = UITheme.InkMuted;
+            buttonNotes[i].gameObject.SetActive(!IsAvailable(i));
+
+            // 契约 70_ §11.1 / 判据 P10「形态即承诺」：未开放入口 = 灰显 + 角标 + 朱砂斜章（三件套）
+            if (!IsAvailable(i))
+                UIPanelChrome.MakeSeal(btnGo.transform, UICopy.Common.NotImplemented,
+                    UITheme.StampSize * 0.5f, new Vector2(28f, 0f));
 
             btn.onClick.AddListener(() => OnButtonClicked(idx));
-            AddPressScale(btnGo);
+            // 按下缩放由 UIButtonState 统一处理（0.98），不再叠加 AddPressScale，避免双重缩放
+
+            // 契约 70_ §6.0：底栏入口显式用 NavBar 模式（选中条在下沿），并挂五态
+            buttonStates[i] = UIButtonState.Apply(btn, ButtonMode.NavBar);
+            ApplyDeptVisual(i, false);
         }
     }
 
-    void BuildPanels(Transform parent)
+    /// <summary>
+    /// 一个入口的外观：选中态 / 未开放态 / 普通态。
+    /// 未开放部门恒为灰（InkMuted）且不可交互，避免玩家点了没反应还以为卡了。
+    /// </summary>
+    void ApplyDeptVisual(int index, bool on)
     {
-        for (int i = 0; i < DeptNames.Length; i++)
+        bool open = IsAvailable(index);
+        var btn = buttonBgs[index] != null ? buttonBgs[index].GetComponent<Button>() : null;
+        if (btn != null) btn.interactable = open;
+
+        // 颜色统一交给 UIButtonState 五态（停用态 = BtnDisabledBg / BtnDisabledText，等价原 Divider / InkMuted 的灰显意图）
+        var state = buttonStates != null ? buttonStates[index] : null;
+        if (state != null)
         {
-            var panelGo = new GameObject("Panel_" + DeptNames[i], typeof(RectTransform), typeof(Image), typeof(CanvasGroup));
-            panelGo.transform.SetParent(parent, false);
-            panelGroups[i] = panelGo.GetComponent<CanvasGroup>();
-
-            var rt = panelGo.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.5f, 0.5f);
-            rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(620f, 420f);
-            rt.anchoredPosition = new Vector2(-40f, 40f);
-
-            var img = panelGo.GetComponent<Image>();
-            img.color = UITheme.PaperBg;
-
-            var titleGo = new GameObject("Title", typeof(RectTransform), typeof(Text));
-            titleGo.transform.SetParent(panelGo.transform, false);
-            var title = titleGo.GetComponent<Text>();
-            if (font != null) title.font = font;
-            title.text = DeptNames[i];
-            title.fontSize = 34;
-            title.fontStyle = FontStyle.Bold;
-            title.alignment = TextAnchor.MiddleLeft;
-            title.color = UITheme.InkPrimary;
-
-            var trt = titleGo.GetComponent<RectTransform>();
-            trt.anchorMin = new Vector2(0f, 1f);
-            trt.anchorMax = new Vector2(1f, 1f);
-            trt.pivot = new Vector2(0.5f, 1f);
-            trt.offsetMin = new Vector2(30f, -70f);
-            trt.offsetMax = new Vector2(-30f, 0f);
-
-            var descGo = new GameObject("Desc", typeof(RectTransform), typeof(Text));
-            descGo.transform.SetParent(panelGo.transform, false);
-            var desc = descGo.GetComponent<Text>();
-            if (font != null) desc.font = font;
-            desc.text = DeptDescriptions[i];
-            desc.fontSize = 24;
-            desc.alignment = TextAnchor.UpperLeft;
-            desc.color = UITheme.InkSecondary;
-            desc.horizontalOverflow = HorizontalWrapMode.Wrap;
-            desc.verticalOverflow = VerticalWrapMode.Overflow;
-
-            var drt = descGo.GetComponent<RectTransform>();
-            drt.anchorMin = new Vector2(0f, 0f);
-            drt.anchorMax = new Vector2(1f, 1f);
-            drt.pivot = new Vector2(0.5f, 1f);
-            drt.offsetMin = new Vector2(30f, 30f);
-            drt.offsetMax = new Vector2(-30f, -90f);
-
-            panelGo.SetActive(false);
-            panels[i] = panelGo;
+            state.SetSelected(on && open);
+            return;
         }
+
+        // 兜底：五态组件缺失时退回直接染色
+        if (!open)
+        {
+            buttonBgs[index].color = UITheme.Divider;
+            buttonLabels[index].color = UITheme.InkMuted;
+            return;
+        }
+
+        buttonBgs[index].color = on ? UITheme.SealRed : UITheme.PaperTop;
+        buttonLabels[index].color = on ? Color.white : UITheme.InkPrimary;
     }
 
     public void ShowPanel(int index)
     {
-        if (index < 0 || index >= DeptNames.Length) return;
+        if (index < 0 || index >= DeptCount) return;
+        // 未开放部门没有可展示的能力，不打开面板（按钮也已 interactable=false）
+        if (!IsAvailable(index)) return;
 
-        if (currentIndex == -1)
-        {
-            currentIndex = index;
-            PlayOpen(index);
-        }
-        else if (currentIndex == index)
-        {
-            PlayClose(index);
-            currentIndex = -1;
-        }
-        else
-        {
-            int old = currentIndex;
-            currentIndex = index;
-            PlaySwitch(old, index);
-        }
-
-        UpdateButtons();
+        // 契约 70_ §9.0 L-07：部门浮层已删除，本轮此调用不产生可见内容。
+        // 阶段 B 接入 UIPanelChrome 后在此重建部门浮层。
+        // 注意 `Assets/Editor/EditorScenePreview.cs:214` 的 `ShowPanel(1)` 预览调用因此暂时无输出
+        //（该 Editor 文件不在本任务写权限内，未改动）。
     }
 
     void UpdateButtons()
     {
         bool penActive = PenetrationManager.Instance.IsActive;
         bool agencyOpen = AgencyPanelUI.Instance.IsOpen;
-        for (int i = 0; i < DeptNames.Length; i++)
+        for (int i = 0; i < DeptCount; i++)
         {
-            bool on = (i == 0) ? penActive : (i == 4) ? agencyOpen : (i == currentIndex);
-            buttonBgs[i].color = on ? UITheme.SealRed : UITheme.PaperTop;
-            buttonLabels[i].color = on ? Color.white : UITheme.InkPrimary;
+            // 首尾两个入口分别由渗透模式 / 机构面板驱动；中间三个部门的浮层已随 L-07 删除，恒不点亮
+            bool on = (i == 0) ? penActive : (i == DeptCount - 1) ? agencyOpen : false;
+            ApplyDeptVisual(i, on);
         }
     }
 
@@ -243,6 +227,9 @@ public class AgencyNavUI : MonoBehaviour
 
     void OnButtonClicked(int index)
     {
+        // 未开放部门：按钮已 interactable=false，这里是双保险
+        if (!IsAvailable(index)) return;
+
         if (audioSource != null && uiClickClip != null) audioSource.PlayOneShot(uiClickClip);
         BlockManager.Instance.CloseBlock();
 
@@ -250,16 +237,13 @@ public class AgencyNavUI : MonoBehaviour
         {
             AgencyPanelUI.Instance.SetOpen(false);
             PenetrationManager.Instance.ToggleActive();
-            if (PenetrationManager.Instance.IsActive)
-                CloseAllPanelsImmediate();
             UpdateButtons();
             return;
         }
 
-        if (index == 4)
+        if (index == DeptCount - 1)
         {
             PenetrationManager.Instance.SetActive(false);
-            CloseAllPanelsImmediate();
             AgencyPanelUI.Instance.Toggle();
             UpdateButtons();
             return;
@@ -268,75 +252,5 @@ public class AgencyNavUI : MonoBehaviour
         AgencyPanelUI.Instance.SetOpen(false);
         PenetrationManager.Instance.SetActive(false);
         ShowPanel(index);
-    }
-
-    void CloseAllPanelsImmediate()
-    {
-        if (animRoutine != null)
-        {
-            StopCoroutine(animRoutine);
-            animRoutine = null;
-        }
-        for (int i = 0; i < DeptNames.Length; i++)
-            panels[i].SetActive(false);
-        currentIndex = -1;
-    }
-
-    void PlayOpen(int index)
-    {
-        if (animRoutine != null) StopCoroutine(animRoutine);
-        animRoutine = StartCoroutine(OpenRoutine(index));
-    }
-
-    void PlayClose(int index)
-    {
-        if (animRoutine != null) StopCoroutine(animRoutine);
-        animRoutine = StartCoroutine(CloseRoutine(index));
-    }
-
-    void PlaySwitch(int oldIndex, int newIndex)
-    {
-        if (animRoutine != null) StopCoroutine(animRoutine);
-        animRoutine = StartCoroutine(SwitchRoutine(oldIndex, newIndex));
-    }
-
-    System.Collections.IEnumerator OpenRoutine(int index)
-    {
-        yield return OpenAnim(index);
-        animRoutine = null;
-    }
-
-    System.Collections.IEnumerator CloseRoutine(int index)
-    {
-        yield return UIAnim.Fade(panelGroups[index], 0f, fadeDuration);
-        panels[index].SetActive(false);
-        animRoutine = null;
-    }
-
-    System.Collections.IEnumerator SwitchRoutine(int oldIndex, int newIndex)
-    {
-        yield return UIAnim.Fade(panelGroups[oldIndex], 0f, fadeDuration);
-        panels[oldIndex].SetActive(false);
-        yield return OpenAnim(newIndex);
-        animRoutine = null;
-    }
-
-    System.Collections.IEnumerator OpenAnim(int index)
-    {
-        panels[index].SetActive(true);
-        panelGroups[index].alpha = 0f;
-        panels[index].transform.localScale = Vector3.one * 0.95f;
-
-        float t = 0f;
-        while (t < fadeDuration)
-        {
-            t += Time.deltaTime;
-            float k = UITheme.EaseOutCubic(t / fadeDuration);
-            panelGroups[index].alpha = Mathf.Lerp(0f, 1f, k);
-            panels[index].transform.localScale = Vector3.one * Mathf.Lerp(0.95f, 1f, k);
-            yield return null;
-        }
-        panelGroups[index].alpha = 1f;
-        panels[index].transform.localScale = Vector3.one;
     }
 }

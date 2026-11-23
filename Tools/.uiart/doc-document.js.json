@@ -1,0 +1,31 @@
+{
+  "initialize": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+      "protocolVersion": "2025-11-25",
+      "capabilities": {
+        "tools": {}
+      },
+      "serverInfo": {
+        "name": "Affinity",
+        "version": "1.0.0"
+      },
+      "instructions": "You MUST read the 'preamble' documentation before using the SDK."
+    }
+  },
+  "preambleRead": false,
+  "tools/call": {
+    "jsonrpc": "2.0",
+    "id": 3,
+    "result": {
+      "isError": true,
+      "content": [
+        {
+          "type": "text",
+          "text": "File not found"
+        }
+      ]
+    }
+  }
+}

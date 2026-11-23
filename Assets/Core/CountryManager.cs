@@ -47,7 +47,7 @@ public class CountryManager : MonoBehaviour
                 id = "lutetia",
                 displayName = "卢泰西亚国",
                 ideologyId = "democracy",
-                leader = new LeaderData { name = "占位领导人", ideologyId = "democracy" }
+                leader = new LeaderData { name = "吕西安·马尔索", ideologyId = "democracy" }
             };
             return;
         }

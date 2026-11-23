@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProvinceDatabase
   provinces:
   - id: 1001
-    displayName: 1001
+    displayName: "\u585E\u5938\u7EB3\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4292991092
@@ -26,7 +26,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1002
-    displayName: 1002
+    displayName: "\u6BD4\u56FE\u91CC\u683C\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4285392319
@@ -38,7 +38,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1003
-    displayName: 1003
+    displayName: "\u5B89\u6BD4\u4E9A\u5C3C\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4279479896
@@ -49,7 +49,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1004
-    displayName: 1004
+    displayName: "\u5362\u683C\u675C\u52AA\u59C6\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4282546854
@@ -60,7 +60,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1005
-    displayName: 1005
+    displayName: "\u7279\u96F7\u7EF4\u5C14\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4281949494
@@ -72,7 +72,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1006
-    displayName: 1006
+    displayName: "\u7EF4\u5185\u8482\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4292783565
@@ -83,7 +83,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1007
-    displayName: 1007
+    displayName: "\u9A6C\u897F\u5229\u4E9A\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4287293159
@@ -108,7 +108,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1009
-    displayName: 1009
+    displayName: "\u96F7\u7C73\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4293587005
@@ -119,7 +119,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1010
-    displayName: 1010
+    displayName: "\u585E\u519C\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4279002902
@@ -131,7 +131,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1011
-    displayName: 1011
+    displayName: "\u963F\u7EF4\u5C14\u5C3C\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4291301539
@@ -143,7 +143,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1012
-    displayName: 1012
+    displayName: "\u7EB3\u59C6\u5185\u7279\u65AF\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4282729983
@@ -154,7 +154,7 @@ MonoBehaviour:
     initialIGroups: []
     initialIdeologies: []
   - id: 1013
-    displayName: 1013
+    displayName: "\u6797\u8D21\u7701"
     mapColor:
       serializedVersion: 2
       rgba: 4288624864

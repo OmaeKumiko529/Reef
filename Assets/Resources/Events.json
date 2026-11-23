@@ -2,16 +2,16 @@
   "events": [
     {
       "id": "evt_start",
-      "title": "TestEvent1",
-      "story": "Story...",
-      "description": "Text...",
+      "title": "首都请愿",
+      "story": "九月四日清晨，帕瑞兹省的工厂汽笛没有响。人群从工人区沿河岸向市中心行进，有人举着写有面包价格的木牌，也有人举着议会的徽记。警察总署报告：他们没有携带武器，人数还在增加。",
+      "description": "内务处呈报：请愿规模超出预估，总理府要求在午后之前给出答复。",
       "trigger": [
         { "type": "time_point", "year": 1945, "month": 9, "day": 4 }
       ],
       "options": [
         {
-          "text": "OptionA",
-          "hint": "HintA",
+          "text": "接见请愿代表，公开回应诉求",
+          "hint": "以政令的权威，换首都的人心。",
           "effects": [
             { "type": "add_influence", "blockId": "1008", "value": 20 },
             { "type": "set_flag", "flag": "revolution", "value": 1 },
@@ -19,8 +19,8 @@
           ]
         },
         {
-          "text": "OptionB",
-          "hint": "HintB",
+          "text": "令警察总署清场",
+          "hint": "秩序当场恢复，代价记在帕瑞兹省。",
           "effects": [
             { "type": "add_influence", "blockId": "1008", "value": -10 },
             { "type": "set_flag", "flag": "revolution", "value": 0 }
@@ -30,31 +30,31 @@
     },
     {
       "id": "evt_labor_strike",
-      "title": "TestEvent2",
-      "story": "Story...",
-      "description": "Text...",
+      "title": "码头停工",
+      "story": "九月七日，帕瑞兹省的码头与矿区同时停工。工人代表递上一份清单：八小时工作制、粮食配给，以及释放九月四日被捕的人。厂主拒绝签字，双方在市政厅门口僵持了一整天。",
+      "description": "渗透处与内务处的意见相左：一处主张先谈，一处主张先把工人团体纳入名单。",
       "trigger": [
         { "type": "time_point", "year": 1945, "month": 9, "day": 7 },
         { "type": "flag_compare", "flag": "revolution", "op": "eq", "value": 1 }
       ],
       "options": [
         {
-          "text": "OptionA",
-          "hint": "HintA",
+          "text": "在市政厅主持谈判",
+          "hint": "承认谈判资格，让停工自己结束。",
           "effects": [
             { "type": "add_influence", "blockId": "1008", "value": -20 },
             { "type": "add_ideology", "blockId": "1008", "flag": "socialism", "value": 0.10 },
             { "type": "add_interest_group", "blockId": "1008", "flag": "labor", "value": 0.10 },
-            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "占位链摘要A..." }
+            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "九月七日，首都的码头与矿区停工。谈判在市政厅持续了两天，工人代表第一次被请进了会议室。" }
           ]
         },
         {
-          "text": "OptionB",
-          "hint": "HintB",
+          "text": "把工人团体纳入渗透名单",
+          "hint": "停工压得下去，首都的影响力也压下去。",
           "effects": [
             { "type": "add_influence", "blockId": "1008", "value": -20 },
             { "type": "add_ideology", "blockId": "1008", "flag": "socialism", "value": 0.10 },
-            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "占位链摘要B..." },
+            { "type": "set_chain_summary", "chainId": "spring_of_the_people", "text": "九月七日，首都的码头与矿区停工。停工在第四天平息，工人团体的名单从此摆在渗透处的案头。" },
             { "type": "penetrate_block", "blockId": "1008" }
           ]
         }

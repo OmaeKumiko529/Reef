@@ -124,24 +124,20 @@ public class GameClock : MonoBehaviour
 
     void RefreshPause()
     {
-        if (pauseLabel != null) pauseLabel.text = Paused ? "开始" : "暂停";
+        // 契约 70_ §5.0：接线既有常量；用词由「开始」改「继续」
+        if (pauseLabel != null) pauseLabel.text = Paused ? UICopy.Clock.Resume : UICopy.Clock.Pause;
     }
 
     void BuildUI()
     {
-        var canvas = UIFactory.CreateCanvas("GameClockCanvas", transform);
+        // 层序：契约 70_ §10.0 把日期牌从默认 0 提到 Hud（与顶栏/底栏同层；同层内不依赖创建顺序）
+        var canvas = UIFactory.CreateCanvas("GameClockCanvas", transform, UISorting.Hud);
 
-        var panelGo = new GameObject("ClockPanel", typeof(RectTransform), typeof(Image));
-        panelGo.transform.SetParent(canvas.transform, false);
-        var panelImg = panelGo.GetComponent<Image>();
-        panelImg.color = UITheme.PaperBg;
-
-        var rt = panelGo.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(1f, 1f);
-        rt.anchorMax = new Vector2(1f, 1f);
-        rt.pivot = new Vector2(1f, 1f);
-        rt.sizeDelta = new Vector2(300f, 110f);
-        rt.anchoredPosition = new Vector2(-20f, -20f);
+        // 契约 70_ §7.1：日期牌 = Card（1px 单层框 + 投影，无标题栏），尺寸取 WidthXs 档
+        var chrome = UIPanelChrome.Create(canvas.transform, "ClockPanel", ChromeKind.Card, null,
+            new Vector2(UITheme.WidthXs, 110f), new Vector2(1f, 1f), new Vector2(1f, 1f),
+            new Vector2(-20f, -20f), UISorting.Hud);
+        var panelGo = chrome.Root.gameObject;
 
         var dateGo = new GameObject("Date", typeof(RectTransform), typeof(Text));
         dateGo.transform.SetParent(panelGo.transform, false);
@@ -156,8 +152,9 @@ public class GameClock : MonoBehaviour
         drt.anchorMin = new Vector2(0f, 0f);
         drt.anchorMax = new Vector2(1f, 1f);
         drt.pivot = new Vector2(0.5f, 1f);
-        drt.offsetMin = new Vector2(10f, 55f);
-        drt.offsetMax = new Vector2(-10f, 0f);
+        // L-10：内边距与下方按钮的 20 对齐（原为 10），日期牌尺寸不动
+        drt.offsetMin = new Vector2(20f, 55f);
+        drt.offsetMax = new Vector2(-20f, 0f);
 
         var btnGo = new GameObject("PauseBtn", typeof(RectTransform), typeof(Image), typeof(Button));
         btnGo.transform.SetParent(panelGo.transform, false);
@@ -188,5 +185,6 @@ public class GameClock : MonoBehaviour
         lrt.offsetMax = Vector2.zero;
 
         btn.onClick.AddListener(TogglePause);
+        UIButtonState.Apply(btn, ButtonMode.Clock);   // 五态（契约 70_ §6.0）
     }
 }

@@ -1,6 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 「机构总览」面板：逐行展示各部门的投入等级。
+/// 行数、部门名、是否已开放全部由 <see cref="UICopy.Dept"/> 驱动，
+/// 未开放部门只显示「未开放」状态与空格子，绝不显示假的 1/5 进度（契约 2.6）。
+/// </summary>
 public class AgencyPanelUI : MonoBehaviour
 {
     static AgencyPanelUI _instance;
@@ -22,21 +27,36 @@ public class AgencyPanelUI : MonoBehaviour
         }
     }
 
-    static readonly string[] DeptNames = { "渗透处", "科技处", "内务处", "情报处" };
+    /// <summary>
+    /// 部门行数：<see cref="UICopy.Dept.All"/> 的末项是「机构总览」入口本身而不是部门，故减一。
+    /// 不再写死 4（契约 2.3：部门数量由文案表驱动）。
+    /// </summary>
+    static int DepartmentCount => Mathf.Max(0, UICopy.Dept.All.Length - 1);
+
     const int LevelCount = 5;
 
     static readonly Color FilledColor = UITheme.SealRed;
     static readonly Color EmptyColor = UITheme.Divider;
 
+    /// <summary>该部门是否已开放；文案表长度异常时按"未开放"处理。</summary>
+    static bool IsImplemented(int dept)
+    {
+        var impl = UICopy.Dept.Implemented;
+        return impl != null && dept >= 0 && dept < impl.Length && impl[dept];
+    }
+
     public Font font;
 
     Canvas canvas;
+    PanelChrome chrome;
+    Text countText;
     GameObject panelRoot;
     CanvasGroup group;
     Coroutine animRoutine;
 
-    readonly Text[] valueTexts = new Text[4];
-    readonly Image[][] levelCells = new Image[4][];
+    // 长度在 EnsureUI() 里按 DepartmentCount 分配（原来写死 new Text[4] / new Image[4][]）
+    Text[] valueTexts;
+    Image[][] levelCells;
 
     public bool IsOpen { get; private set; }
 
@@ -50,23 +70,31 @@ public class AgencyPanelUI : MonoBehaviour
     {
         if (canvas != null) return;
 
-        canvas = UIFactory.CreateCanvas("AgencyPanelCanvas", transform);
+        int rows = DepartmentCount;
+        valueTexts = new Text[rows];
+        levelCells = new Image[rows][];
 
-        panelRoot = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-        panelRoot.transform.SetParent(canvas.transform, false);
-        var img = panelRoot.GetComponent<Image>();
-        img.color = UITheme.PaperBg;
-        group = panelRoot.GetComponent<CanvasGroup>();
+        canvas = UIFactory.CreateCanvas("AgencyPanelCanvas", transform, UISorting.Panel);
 
-        var rt = panelRoot.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0.5f, 0.5f);
-        rt.anchorMax = new Vector2(0.5f, 0.5f);
-        rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.sizeDelta = new Vector2(820f, 0f);
-        rt.anchoredPosition = Vector2.zero;
+        // 契约 70_ §6.0/§7.1：Panel 形态（L 档 820 宽 + 直角双层框 + 铅字标题栏 + 朱砂竖块 + 投影）
+        chrome = UIPanelChrome.Create(canvas.transform, "Panel", ChromeKind.Panel, UICopy.Agency.Title,
+            new Vector2(UITheme.WidthL, 0f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
+            Vector2.zero, UISorting.Panel);
+        panelRoot = chrome.Root.gameObject;
+        group = chrome.Group;
+        UIPanelChrome.SetEyebrow(chrome, UICopy.Dept.Eyebrow);
 
-        var layout = panelRoot.GetComponent<VerticalLayoutGroup>();
-        layout.padding = new RectOffset(30, 30, 24, 24);
+        // chrome 的装饰层（框线/纸底/标题栏/档号/印章）不能参与下面的垂直布局，
+        // 否则会被当成布局行、把标题栏挤下去
+        foreach (Transform child in chrome.Root)
+        {
+            var cle = child.GetComponent<LayoutElement>();
+            if (cle == null) cle = child.gameObject.AddComponent<LayoutElement>();
+            cle.ignoreLayout = true;
+        }
+
+        var layout = panelRoot.AddComponent<VerticalLayoutGroup>();
+        layout.padding = new RectOffset(30, 30, (int)(UITheme.TitleBarHeight + UITheme.SpaceLg), 24);
         layout.spacing = 14f;
         layout.childAlignment = TextAnchor.UpperLeft;
         layout.childControlWidth = true;
@@ -74,23 +102,22 @@ public class AgencyPanelUI : MonoBehaviour
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
 
-        var fitter = panelRoot.GetComponent<ContentSizeFitter>();
+        var fitter = panelRoot.AddComponent<ContentSizeFitter>();
         fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
         fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        var titleGo = new GameObject("Title", typeof(RectTransform), typeof(Text));
-        titleGo.transform.SetParent(panelRoot.transform, false);
-        var title = titleGo.GetComponent<Text>();
-        if (font != null) title.font = font;
-        title.text = "机构";
-        title.fontSize = 34;
-        title.fontStyle = FontStyle.Bold;
-        title.alignment = TextAnchor.MiddleLeft;
-        title.color = UITheme.InkPrimary;
-        var titleLE = titleGo.AddComponent<LayoutElement>();
-        titleLE.preferredHeight = 50f;
+        // 契约 70_ §5.0：在册 N 处 · 已开放 M 处（Agency.CountFormat）
+        int openCount = 0;
+        for (int i = 0; i < rows; i++)
+            if (IsImplemented(i)) openCount++;
 
-        for (int d = 0; d < DeptNames.Length; d++)
+        countText = UIFactory.CreateText("Count", panelRoot.transform,
+            UITheme.FontCaption, FontStyle.Normal, TextAnchor.MiddleLeft, font);
+        countText.text = string.Format(UICopy.Agency.CountFormat, rows, openCount);
+        countText.color = UITheme.InkMuted;
+        countText.gameObject.AddComponent<LayoutElement>().preferredHeight = UITheme.FontCaption;
+
+        for (int d = 0; d < rows; d++)
             BuildRow(panelRoot.transform, d);
 
         panelRoot.SetActive(false);
@@ -98,7 +125,10 @@ public class AgencyPanelUI : MonoBehaviour
 
     void BuildRow(Transform parent, int dept)
     {
-        var rowGo = new GameObject("Row_" + DeptNames[dept], typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        bool implemented = IsImplemented(dept);
+        string deptName = UICopy.Dept.All[dept];
+
+        var rowGo = new GameObject("Row_" + deptName, typeof(RectTransform), typeof(HorizontalLayoutGroup));
         rowGo.transform.SetParent(parent, false);
         var rl = rowGo.GetComponent<HorizontalLayoutGroup>();
         rl.spacing = 14f;
@@ -110,16 +140,12 @@ public class AgencyPanelUI : MonoBehaviour
         var rowLE = rowGo.AddComponent<LayoutElement>();
         rowLE.preferredHeight = 56f;
 
-        var nameGo = new GameObject("Name", typeof(RectTransform), typeof(Text));
-        nameGo.transform.SetParent(rowGo.transform, false);
-        var name = nameGo.GetComponent<Text>();
-        if (font != null) name.font = font;
-        name.text = DeptNames[dept];
-        name.fontSize = 26;
-        name.fontStyle = FontStyle.Bold;
-        name.alignment = TextAnchor.MiddleLeft;
-        name.color = UITheme.InkPrimary;
-        var nameLE = nameGo.AddComponent<LayoutElement>();
+        var name = UIFactory.CreateText("Name", rowGo.transform,
+            UITheme.FontSubtitle, FontStyle.Bold, TextAnchor.MiddleLeft, font);
+        name.text = deptName;
+        // 未开放部门的名字压暗，与「未开放」状态一致
+        name.color = implemented ? UITheme.InkPrimary : UITheme.InkMuted;
+        var nameLE = name.gameObject.AddComponent<LayoutElement>();
         nameLE.preferredWidth = 110f;
         nameLE.flexibleWidth = 0f;
 
@@ -144,81 +170,71 @@ public class AgencyPanelUI : MonoBehaviour
             cellGo.transform.SetParent(barGo.transform, false);
             var cell = cellGo.GetComponent<Image>();
             cell.color = EmptyColor;
+            cell.raycastTarget = false; // 纯装饰格子，不参与射线检测
             levelCells[dept][i] = cell;
             var cellLE = cellGo.AddComponent<LayoutElement>();
             cellLE.preferredWidth = 28f;
             cellLE.preferredHeight = 24f;
         }
 
-        var valGo = new GameObject("Value", typeof(RectTransform), typeof(Text));
-        valGo.transform.SetParent(rowGo.transform, false);
-        var val = valGo.GetComponent<Text>();
-        if (font != null) val.font = font;
-        val.fontSize = 18;
-        val.alignment = TextAnchor.MiddleLeft;
-        val.color = UITheme.InkSecondary;
-        val.horizontalOverflow = HorizontalWrapMode.Wrap;
-        val.verticalOverflow = VerticalWrapMode.Overflow;
+        var val = UIFactory.CreateText("Value", rowGo.transform,
+            UITheme.FontCaption, FontStyle.Normal, TextAnchor.MiddleLeft, font);
+        val.color = implemented ? UITheme.InkSecondary : UITheme.InkMuted;
         valueTexts[dept] = val;
-        var valLE = valGo.AddComponent<LayoutElement>();
+        var valLE = val.gameObject.AddComponent<LayoutElement>();
         valLE.preferredWidth = 200f;
         valLE.flexibleWidth = 1f;
 
-        int captured = dept;
-        CreateLevelButton(rowGo.transform, "-", () => OnDowngrade(captured));
-        CreateLevelButton(rowGo.transform, "+", () => OnUpgrade(captured));
+        if (!implemented)
+        {
+            // 未开放部门：不生成 +/- 按钮（原本点了也没用），状态词用文案表的「未开放」
+            val.text = UICopy.Common.NotImplemented;
+            return;
+        }
+
+        CreateLevelButton(rowGo.transform, "-", () => OnDowngrade(dept));
+        CreateLevelButton(rowGo.transform, "+", () => OnUpgrade(dept));
     }
 
-    GameObject CreateLevelButton(Transform parent, string label, UnityEngine.Events.UnityAction onClick)
+    GameObject CreateLevelButton(Transform parent, string label, System.Action onClick)
     {
-        var btnGo = new GameObject("Btn_" + label, typeof(RectTransform), typeof(Image), typeof(Button));
-        btnGo.transform.SetParent(parent, false);
-        var btnImg = btnGo.GetComponent<Image>();
-        btnImg.color = UITheme.PaperTop;
-        var btn = btnGo.GetComponent<Button>();
-        btn.transition = Selectable.Transition.None;
-        var btnLE = btnGo.AddComponent<LayoutElement>();
+        var btn = UIFactory.CreateButton("Btn_" + label, parent, label, font,
+            UITheme.FontSubtitle, UITheme.PaperTop, UITheme.InkPrimary, onClick);
+        var btnLE = btn.gameObject.AddComponent<LayoutElement>();
         btnLE.preferredWidth = 44f;
-        btnLE.preferredHeight = 40f;
+        btnLE.preferredHeight = 44f;   // 契约 70_ §15.3（P7）：点击目标 ≥44×44
         btnLE.flexibleWidth = 0f;
-
-        var lblGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
-        lblGo.transform.SetParent(btnGo.transform, false);
-        var lbl = lblGo.GetComponent<Text>();
-        if (font != null) lbl.font = font;
-        lbl.text = label;
-        lbl.fontSize = 26;
-        lbl.alignment = TextAnchor.MiddleCenter;
-        lbl.color = UITheme.InkPrimary;
-        var lblRT = lbl.rectTransform;
-        lblRT.anchorMin = Vector2.zero;
-        lblRT.anchorMax = Vector2.one;
-        lblRT.offsetMin = Vector2.zero;
-        lblRT.offsetMax = Vector2.zero;
-
-        btn.onClick.AddListener(onClick);
-        return btnGo;
+        return btn.gameObject;
     }
 
+    /// <summary>
+    /// 该部门的当前等级。目前只有渗透处（下标 0）有真实等级来源；
+    /// 未开放部门一律返回 0，让等级格全空——原来的 <c>return 1</c> 会让未实装部门常亮第一格，
+    /// 看起来像已经投过一级（假进度）。
+    /// </summary>
     int GetLevel(int dept)
     {
+        if (!IsImplemented(dept)) return 0;
         if (dept == 0) return PenetrationManager.Instance.infiltrationLevel;
-        return 1;
+        return 0;
     }
 
     string GetValueText(int dept)
     {
+        if (!IsImplemented(dept)) return UICopy.Common.NotImplemented;
         if (dept == 0)
         {
             var p = PenetrationManager.Instance;
-            return "等级 " + p.infiltrationLevel + " ｜ 区块 " + p.MaxBlocks + " ｜ 日 +" + p.DailyBonus.ToString("0.#") + " ｜ 上限 +" + p.MaxBonus.ToString("0");
+            return string.Format(UICopy.Agency.ValueFormat,
+                p.infiltrationLevel, p.MaxBlocks,
+                p.DailyBonus.ToString("0.#"), p.MaxBonus.ToString("0"));
         }
-        return "未实装";
+        return UICopy.Common.NotImplemented;
     }
 
     void OnUpgrade(int dept)
     {
-        if (dept != 0) return;
+        if (dept != 0 || !IsImplemented(dept)) return;
         int cur = PenetrationManager.Instance.infiltrationLevel;
         if (cur >= LevelCount) return;
         PenetrationManager.Instance.SetLevel(cur + 1);
@@ -227,7 +243,7 @@ public class AgencyPanelUI : MonoBehaviour
 
     void OnDowngrade(int dept)
     {
-        if (dept != 0) return;
+        if (dept != 0 || !IsImplemented(dept)) return;
         int cur = PenetrationManager.Instance.infiltrationLevel;
         if (cur <= 1) return;
         PenetrationManager.Instance.SetLevel(cur - 1);
@@ -248,8 +264,12 @@ public class AgencyPanelUI : MonoBehaviour
         {
             panelRoot.SetActive(true);
             Refresh();
-            for (int i = 0; i < LevelCount; i++)
-                levelCells[0][i].color = EmptyColor;
+            // 渗透行的等级格从空开始，由 OpenRoutine 逐格点亮
+            if (DepartmentCount > 0 && levelCells[0] != null)
+            {
+                for (int i = 0; i < LevelCount; i++)
+                    levelCells[0][i].color = EmptyColor;
+            }
             animRoutine = StartCoroutine(OpenRoutine());
         }
         else
@@ -275,11 +295,14 @@ public class AgencyPanelUI : MonoBehaviour
         group.alpha = 1f;
         panelRoot.transform.localScale = Vector3.one;
 
-        int penLevel = GetLevel(0);
-        for (int i = 0; i < penLevel; i++)
+        if (DepartmentCount > 0 && levelCells[0] != null)
         {
-            levelCells[0][i].color = FilledColor;
-            yield return new WaitForSeconds(0.05f);
+            int penLevel = GetLevel(0);
+            for (int i = 0; i < penLevel && i < LevelCount; i++)
+            {
+                levelCells[0][i].color = FilledColor;
+                yield return new WaitForSeconds(0.05f);
+            }
         }
 
         animRoutine = null;
@@ -294,7 +317,7 @@ public class AgencyPanelUI : MonoBehaviour
 
     void Refresh()
     {
-        for (int d = 0; d < DeptNames.Length; d++)
+        for (int d = 0; d < valueTexts.Length; d++)
         {
             int lvl = GetLevel(d);
             for (int i = 0; i < LevelCount; i++)
